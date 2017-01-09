@@ -1,1 +1,5 @@
 language: rascal
+
+install:
+  - wget http://update.rascal-mpl.org/console/rascal-shell-stable.jar
+  - java -Xmx1G -Xss32m -jar rascal-shell-stable.jar src/main.rsc
