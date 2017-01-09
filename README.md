@@ -1,2 +1,2 @@
 # Oxidize: Open framework for idiomatic rule preservation written in Rascal MPL
-Oxidized Rust (Idiomatic Rust)
+Oxidized Rust (Idiomatic Rust) [![Build Status](https://travis-ci.org/zborowa/oxidize.svg?branch=master)](https://travis-ci.org/zborowa/oxidize)
