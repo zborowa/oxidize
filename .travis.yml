@@ -1,9 +1,8 @@
-language: java
-
-jdk:
-  - oraclejdk8
-
+language: generic
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default
 install:
   - wget http://update.rascal-mpl.org/console/rascal-shell-stable.jar
-  - ls
-  - java -Xmx1G -Xss32m -jar rascal-shell-stable.jar src/main.rsc
+  - /usr/lib/jvm/java-8-oracle/jre/bin/java -Xmx1G -Xss32m -jar rascal-shell-stable.jar src/main.rsc
