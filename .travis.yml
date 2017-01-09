@@ -1,4 +1,4 @@
-language: rascal
+language: java
 
 jdk:
   - oraclejdk8
