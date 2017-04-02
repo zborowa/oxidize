@@ -5,4 +5,4 @@ addons:
       - oracle-java8-set-default
 install:
   - wget http://update.rascal-mpl.org/console/rascal-shell-stable.jar
-  - /usr/lib/jvm/java-8-oracle/jre/bin/java -Xmx1G -Xss32m -jar rascal-shell-stable.jar src/main.rsc
+  - /usr/lib/jvm/java-8-oracle/jre/bin/java -Xmx1G -Xss32m -jar rascal-shell-stable.jar src/main/Main.rsc
