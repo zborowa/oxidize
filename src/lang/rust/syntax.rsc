@@ -1,6 +1,6 @@
 @contributors{Adrian Zborowski - 11336544 - adrian.zborowski@uva.nl}
 
-module parser::parser
+module lang::rust::\syntax
 
 import Prelude;
 
