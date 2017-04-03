@@ -1,6 +1,6 @@
 @contributors{Adrian Zborowski - 11336544 - adrian.zborowski@uva.nl}
 
-module main::Main
+module Main
 
 import Prelude;
 
