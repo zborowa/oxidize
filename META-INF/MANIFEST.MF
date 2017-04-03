@@ -5,4 +5,3 @@ Bundle-SymbolicName: oxidize
 Bundle-Version: 0.0.1
 Require-Bundle: rascal_eclipse
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-Vendor: Adrian Zborowski

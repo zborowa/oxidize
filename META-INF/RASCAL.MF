@@ -1,4 +1,4 @@
-Manifest-Version: 0.0.1
+Manifest-Version: 1.0
 Main-Function: main
-Main-Module: Plugin
+Main-Module: main
 Source: src/

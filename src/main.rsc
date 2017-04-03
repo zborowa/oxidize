@@ -1,9 +1,9 @@
 @contributors{Adrian Zborowski - 11336544 - adrian.zborowski@uva.nl}
 
-module Main
+module main
 
 import Prelude;
 
-public void Main(list[str] param = []){
+public void main(list[str] param = []){
 	println("Hello World!");
 }
