@@ -2,6 +2,7 @@
 
 module lang::rust::\syntax
 
-import Prelude;
+lexical Identifier = [a-zA-Z][a-zA-Z0-9]*;
 
-
+lexical Hash = "#";
+lexical Shebang = Hash "!";

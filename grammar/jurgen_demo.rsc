@@ -1,0 +1,1569 @@
+rascal>
+cancelled
+rascal>
+cancelled
+rascal>1 + 1
+int: 2
+rascal>syntax Stat =  "if" "(" Exp ")" Stat  | nop:";" 
+>>>>>>>;
+ok
+rascal>syntax Exp = Id | left Exp "+" Exp;
+ok
+rascal>lexical Id = [a-z]+;
+ok
+rascal>[Stat] "if(a);"
+Stat: (Stat) `if(a);`
+rascal>[Stat] "if (a);"
+|prompt:///|(0,16,<1,0>,<1,16>): ParseError(|prompt:///|(0,16,<1,0>,<1,16>))
+        at $root$(|prompt:///|(0,15,<1,0>,<1,15>))
+
+
+rascal>layout WS = [\ \t\n]*;
+ok
+rascal>
+cancelled
+rascal>
+
+cancelled
+rascal>#WS
+type[WS]: type(
+  sort("WS"),
+  ())
+rascal>[Stat] "if (a);"
+Stat: (Stat) `if (a);`
+rascal>t = [Stat] "if (a);"
+>>>>>>>;
+Stat: (Stat) `if (a);`
+rascal>import ParseTree
+ParseTree   
+rascal>import ParseTree;
+ok
+rascal>parse(#Stat, "if(a);")
+Stat: (Stat) `if(a);`
+rascal>#Stat
+type[Stat]: type(
+  sort("Stat"),
+  (
+    sort("Exp"):choice(
+      sort("Exp"),
+      {
+        prod(
+          sort("Exp"),
+          [
+            sort("Exp"),
+            layouts("WS"),
+            lit("+"),
+            layouts("WS"),
+            sort("Exp")
+          ],
+          {assoc(left())}),
+        prod(
+          sort("Exp"),
+          [lex("Id")],
+          {})
+      }),
+    lex("Id"):choice(
+      lex("Id"),
+      {prod(
+          lex("Id"),
+          [iter(\char-class([range(97,122)]))],
+          {})}),
+    sort("Stat"):choice(
+      sort("Stat"),
+      {
+        prod(
+          sort("Stat"),
+          [
+            lit("if"),
+            layouts("WS"),
+            lit("("),
+            layouts("WS"),
+            sort("Exp"),
+            layouts("WS"),
+            lit(")"),
+            layouts("WS"),
+            sort("Stat")
+          ],
+          {}),
+        prod(
+          label(
+            "nop",
+            sort("Stat")),
+          [lit(";")],
+          {})
+      }),
+    layouts("WS"):choice(
+      layouts("WS"),
+      {prod(
+          layouts("WS"),
+          [\iter-star(\char-class([
+                  range(9,10),
+                  range(32,32)
+                ]))],
+          {})})
+  ))
+rascal>(Stat) `if(a);`
+Stat: (Stat) `if(a);`
+rascal>t = (Stat) `if(a);`
+>>>>>>>;
+Stat: (Stat) `if(a);`
+rascal>import IO;
+ok
+rascal>println(t)
+if(a);
+ok
+rascal>rprintln(t)
+appl(prod(sort("Stat"),[lit("if"),layouts("WS"),lit("("),layouts("WS"),sort("Exp"),layouts("WS"),lit(")"),layouts("WS"),sort("Stat")],{}),[appl(prod(lit("if"),[\char-class([range(105,105)]),\char-class([range(102,102)])],{}),[char(105),char(102)]),appl(prod(layouts("WS"),[\iter-star(\char-class([range(9,10),range(32,32)]))],{}),[appl(regular(\iter-star(\char-class([range(9,10),range(32,32)]))),[])[@loc=|prompt:///|(14,0)]])[@loc=|prompt:///|(14,0)],appl(prod(lit("("),[\char-class([range(40,40)])],{}),[char(40)]),appl(prod(layouts("WS"),[\iter-star(\char-class([range(9,10),range(32,32)]))],{}),[appl(regular(\iter-star(\char-class([range(9,10),range(32,32)]))),[])[@loc=|prompt:///|(15,0)]])[@loc=|prompt:///|(15,0)],appl(prod(sort("Exp"),[lex("Id")],{}),[appl(prod(lex("Id"),[iter(\char-class([range(97,122)]))],{}),[appl(regular(iter(\char-class([range(97,122)]))),[char(97)])[@loc=|prompt:///|(15,1)]])[@loc=|prompt:///|(15,1)]])[@loc=|prompt:///|(15,1)],appl(prod(layouts("WS"),[\iter-star(\char-class([range(9,10),range(32,32)]))],{}),[appl(regular(\iter-star(\char-class([range(9,10),range(32,32)]))),[])[@loc=|prompt:///|(16,0)]])[@loc=|prompt:///|(16,0)],appl(prod(lit(")"),[\char-class([range(41,41)])],{}),[char(41)]),appl(prod(layouts("WS"),[\iter-star(\char-class([range(9,10),range(32,32)]))],{}),[appl(regular(\iter-star(\char-class([range(9,10),range(32,32)]))),[])[@loc=|prompt:///|(17,0)]])[@loc=|prompt:///|(17,0)],appl(prod(label("nop",sort("Stat")),[lit(";")],{}),[appl(prod(lit(";"),[\char-class([range(59,59)])],{}),[char(59)])])[@loc=|prompt:///|(17,1)]])[@loc=|prompt:///|(12,6)]
+ok
+rascal>iprintln(t)
+appl(
+  prod(
+    sort("Stat"),
+    [
+      lit("if"),
+      layouts("WS"),
+      lit("("),
+      layouts("WS"),
+      sort("Exp"),
+      layouts("WS"),
+      lit(")"),
+      layouts("WS"),
+      sort("Stat")
+    ],
+    {}),
+  [appl(
+      prod(
+        lit("if"),
+        [
+          \char-class([range(105,105)]),
+          \char-class([range(102,102)])
+        ],
+        {}),
+      [char(105),char(102)]),appl(
+      prod(
+        layouts("WS"),
+        [\iter-star(\char-class([
+                range(9,10),
+                range(32,32)
+              ]))],
+        {}),
+      [appl(
+          regular(\iter-star(\char-class([
+                  range(9,10),
+                  range(32,32)
+                ]))),
+          [])[
+          @loc=|prompt:///|(14,0)
+        ]])[
+      @loc=|prompt:///|(14,0)
+    ],appl(
+      prod(
+        lit("("),
+        [\char-class([range(40,40)])],
+        {}),
+      [char(40)]),appl(
+      prod(
+        layouts("WS"),
+        [\iter-star(\char-class([
+                range(9,10),
+                range(32,32)
+              ]))],
+        {}),
+      [appl(
+          regular(\iter-star(\char-class([
+                  range(9,10),
+                  range(32,32)
+                ]))),
+          [])[
+          @loc=|prompt:///|(15,0)
+        ]])[
+      @loc=|prompt:///|(15,0)
+    ],appl(
+      prod(
+        sort("Exp"),
+        [lex("Id")],
+        {}),
+      [appl(
+          prod(
+            lex("Id"),
+            [iter(\char-class([range(97,122)]))],
+            {}),
+          [appl(
+              regular(iter(\char-class([range(97,122)]))),
+              [char(97)])[
+              @loc=|prompt:///|(15,1)
+            ]])[
+          @loc=|prompt:///|(15,1)
+        ]])[
+      @loc=|prompt:///|(15,1)
+    ],appl(
+      prod(
+        layouts("WS"),
+        [\iter-star(\char-class([
+                range(9,10),
+                range(32,32)
+              ]))],
+        {}),
+      [appl(
+          regular(\iter-star(\char-class([
+                  range(9,10),
+                  range(32,32)
+                ]))),
+          [])[
+          @loc=|prompt:///|(16,0)
+        ]])[
+      @loc=|prompt:///|(16,0)
+    ],appl(
+      prod(
+        lit(")"),
+        [\char-class([range(41,41)])],
+        {}),
+      [char(41)]),appl(
+      prod(
+        layouts("WS"),
+        [\iter-star(\char-class([
+                range(9,10),
+                range(32,32)
+              ]))],
+        {}),
+      [appl(
+          regular(\iter-star(\char-class([
+                  range(9,10),
+                  range(32,32)
+                ]))),
+          [])[
+          @loc=|prompt:///|(17,0)
+        ]])[
+      @loc=|prompt:///|(17,0)
+    ],appl(
+      prod(
+        label(
+          "nop",
+          sort("Stat")),
+        [lit(";")],
+        {}),
+      [appl(
+          prod(
+            lit(";"),
+            [\char-class([range(59,59)])],
+            {}),
+          [char(59)])])[
+      @loc=|prompt:///|(17,1)
+    ]])[
+  @loc=|prompt:///|(12,6)
+]
+ok
+rascal> (Stat) `if (<Exp e>) <Stat s>` := [Stat] "if(a+a);"
+bool: true
+rascal>if ( (Stat) `if (<Exp e>) <Stat s>` := [Stat] "if(a+a);")
+>>>>>>>  println("exp is <e>
+>>>>>>>          'stat is <s>");
+exp is a+a
+stat is ;
+ok
+rascal>if ( (Stat) `if (<Exp e>) <Stat s>` := [Stat] "if      (a+a+b);")
+>>>>>>>  println("exp is <e>");
+exp is a+a+b
+ok
+rascal>syntax Exp = Id Id? Id;
+ok
+rascal>[Exp] "a a"
+Exp: (Exp) `a a`
+rascal>iprintln([Exp] "a a")
+amb({appl(
+      prod(
+        sort("Exp"),
+        [
+          lex("Id"),
+          layouts("WS"),
+          opt(lex("Id")),
+          layouts("WS"),
+          lex("Id")
+        ],
+        {}),
+      [appl(
+          prod(
+            lex("Id"),
+            [iter(\char-class([range(97,122)]))],
+            {}),
+          [appl(
+              regular(iter(\char-class([range(97,122)]))),
+              [char(97)])[
+              @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [char(32)])[
+              @loc=|prompt:///|(1,1,<1,1>,<1,2>)
+            ]])[
+          @loc=|prompt:///|(1,1,<1,1>,<1,2>)
+        ],appl(
+          regular(opt(lex("Id"))),
+          [])[
+          @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+            ]])[
+          @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+        ],appl(
+          prod(
+            lex("Id"),
+            [iter(\char-class([range(97,122)]))],
+            {}),
+          [appl(
+              regular(iter(\char-class([range(97,122)]))),
+              [char(97)])[
+              @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+            ]])[
+          @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+        ]])[
+      @loc=|prompt:///|(0,3,<1,0>,<1,3>)
+    ],appl(
+      prod(
+        sort("Exp"),
+        [
+          lex("Id"),
+          layouts("WS"),
+          opt(lex("Id")),
+          layouts("WS"),
+          lex("Id")
+        ],
+        {}),
+      [appl(
+          prod(
+            lex("Id"),
+            [iter(\char-class([range(97,122)]))],
+            {}),
+          [appl(
+              regular(iter(\char-class([range(97,122)]))),
+              [char(97)])[
+              @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+        ],appl(
+          regular(opt(lex("Id"))),
+          [])[
+          @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [char(32)])[
+              @loc=|prompt:///|(1,1,<1,1>,<1,2>)
+            ]])[
+          @loc=|prompt:///|(1,1,<1,1>,<1,2>)
+        ],appl(
+          prod(
+            lex("Id"),
+            [iter(\char-class([range(97,122)]))],
+            {}),
+          [appl(
+              regular(iter(\char-class([range(97,122)]))),
+              [char(97)])[
+              @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+            ]])[
+          @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+        ]])[
+      @loc=|prompt:///|(0,3,<1,0>,<1,3>)
+    ]})[
+  @loc=|prompt:///|(0,3,<1,0>,<1,3>)
+]
+ok
+rascal>
+cancelled
+rascal>[Stat] "if (a);"
+Stat: (Stat) `if (a);`
+rascal>[Exp] "a a"
+Exp: (Exp) `a a`
+rascal>parse(#Exp, "a a")
+|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>): Ambiguity(|unknown:///|(0,3,<1,0>,<1,3>),"Exp","a a")
+        at *** somewhere ***(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>))
+        at parse(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(14305,5,<442,80>,<442,85>))
+
+
+rascal>parse(#Exp, "a a", allowAmbiguity=true)
+Exp: (Exp) `a a`
+rascal>syntax Exp = Exp "*" Exp;
+ok
+rascal>[Exp] "a+a*a"
+Exp: (Exp) `a+a*a`
+rascal>iprintln([Exp] "a+a*a")
+amb({appl(
+      prod(
+        sort("Exp"),
+        [
+          sort("Exp"),
+          layouts("WS"),
+          lit("*"),
+          layouts("WS"),
+          sort("Exp")
+        ],
+        {}),
+      [appl(
+          prod(
+            sort("Exp"),
+            [
+              sort("Exp"),
+              layouts("WS"),
+              lit("+"),
+              layouts("WS"),
+              sort("Exp")
+            ],
+            {assoc(left())}),
+          [appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+                    ]])[
+                  @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+                ]])[
+              @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+            ],appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+                ]])[
+              @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+            ],appl(
+              prod(
+                lit("+"),
+                [\char-class([range(43,43)])],
+                {}),
+              [char(43)]),appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+                ]])[
+              @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+            ],appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                    ]])[
+                  @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+            ]])[
+          @loc=|prompt:///|(0,3,<1,0>,<1,3>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+            ]])[
+          @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+        ],appl(
+          prod(
+            lit("*"),
+            [\char-class([range(42,42)])],
+            {}),
+          [char(42)]),appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+            ]])[
+          @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+        ],appl(
+          prod(
+            sort("Exp"),
+            [lex("Id")],
+            {}),
+          [appl(
+              prod(
+                lex("Id"),
+                [iter(\char-class([range(97,122)]))],
+                {}),
+              [appl(
+                  regular(iter(\char-class([range(97,122)]))),
+                  [char(97)])[
+                  @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                ]])[
+              @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+            ]])[
+          @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+        ]])[
+      @loc=|prompt:///|(0,5,<1,0>,<1,5>)
+    ],appl(
+      prod(
+        sort("Exp"),
+        [
+          sort("Exp"),
+          layouts("WS"),
+          lit("+"),
+          layouts("WS"),
+          sort("Exp")
+        ],
+        {assoc(left())}),
+      [appl(
+          prod(
+            sort("Exp"),
+            [lex("Id")],
+            {}),
+          [appl(
+              prod(
+                lex("Id"),
+                [iter(\char-class([range(97,122)]))],
+                {}),
+              [appl(
+                  regular(iter(\char-class([range(97,122)]))),
+                  [char(97)])[
+                  @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+                ]])[
+              @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+        ],appl(
+          prod(
+            lit("+"),
+            [\char-class([range(43,43)])],
+            {}),
+          [char(43)]),appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+            ]])[
+          @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+        ],appl(
+          prod(
+            sort("Exp"),
+            [
+              sort("Exp"),
+              layouts("WS"),
+              lit("*"),
+              layouts("WS"),
+              sort("Exp")
+            ],
+            {}),
+          [appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                    ]])[
+                  @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+            ],appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+            ],appl(
+              prod(
+                lit("*"),
+                [\char-class([range(42,42)])],
+                {}),
+              [char(42)]),appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+                ]])[
+              @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+            ],appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                    ]])[
+                  @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                ]])[
+              @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+            ]])[
+          @loc=|prompt:///|(2,3,<1,2>,<1,5>)
+        ]])[
+      @loc=|prompt:///|(0,5,<1,0>,<1,5>)
+    ]})[
+  @loc=|prompt:///|(0,5,<1,0>,<1,5>)
+]
+ok
+rascal>
+cancelled
+rascal>syntax Exp = Exp "*" Exp > Exp "+" Exp;
+ok
+rascal>iprintln([Exp] "a+a*a")
+amb({appl(
+      prod(
+        sort("Exp"),
+        [
+          sort("Exp"),
+          layouts("WS"),
+          lit("+"),
+          layouts("WS"),
+          sort("Exp")
+        ],
+        {}),
+      [appl(
+          prod(
+            sort("Exp"),
+            [lex("Id")],
+            {}),
+          [appl(
+              prod(
+                lex("Id"),
+                [iter(\char-class([range(97,122)]))],
+                {}),
+              [appl(
+                  regular(iter(\char-class([range(97,122)]))),
+                  [char(97)])[
+                  @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+                ]])[
+              @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+        ],appl(
+          prod(
+            lit("+"),
+            [\char-class([range(43,43)])],
+            {}),
+          [char(43)]),appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+            ]])[
+          @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+        ],appl(
+          prod(
+            sort("Exp"),
+            [
+              sort("Exp"),
+              layouts("WS"),
+              lit("*"),
+              layouts("WS"),
+              sort("Exp")
+            ],
+            {}),
+          [appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                    ]])[
+                  @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+            ],appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+            ],appl(
+              prod(
+                lit("*"),
+                [\char-class([range(42,42)])],
+                {}),
+              [char(42)]),appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+                ]])[
+              @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+            ],appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                    ]])[
+                  @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                ]])[
+              @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+            ]])[
+          @loc=|prompt:///|(2,3,<1,2>,<1,5>)
+        ]])[
+      @loc=|prompt:///|(0,5,<1,0>,<1,5>)
+    ],appl(
+      prod(
+        sort("Exp"),
+        [
+          sort("Exp"),
+          layouts("WS"),
+          lit("*"),
+          layouts("WS"),
+          sort("Exp")
+        ],
+        {}),
+      [appl(
+          prod(
+            sort("Exp"),
+            [
+              sort("Exp"),
+              layouts("WS"),
+              lit("+"),
+              layouts("WS"),
+              sort("Exp")
+            ],
+            {assoc(left())}),
+          [appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+                    ]])[
+                  @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+                ]])[
+              @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+            ],appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+                ]])[
+              @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+            ],appl(
+              prod(
+                lit("+"),
+                [\char-class([range(43,43)])],
+                {}),
+              [char(43)]),appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+                ]])[
+              @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+            ],appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                    ]])[
+                  @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+            ]])[
+          @loc=|prompt:///|(0,3,<1,0>,<1,3>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+            ]])[
+          @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+        ],appl(
+          prod(
+            lit("*"),
+            [\char-class([range(42,42)])],
+            {}),
+          [char(42)]),appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+            ]])[
+          @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+        ],appl(
+          prod(
+            sort("Exp"),
+            [lex("Id")],
+            {}),
+          [appl(
+              prod(
+                lex("Id"),
+                [iter(\char-class([range(97,122)]))],
+                {}),
+              [appl(
+                  regular(iter(\char-class([range(97,122)]))),
+                  [char(97)])[
+                  @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                ]])[
+              @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+            ]])[
+          @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+        ]])[
+      @loc=|prompt:///|(0,5,<1,0>,<1,5>)
+    ],appl(
+      prod(
+        sort("Exp"),
+        [
+          sort("Exp"),
+          layouts("WS"),
+          lit("+"),
+          layouts("WS"),
+          sort("Exp")
+        ],
+        {assoc(left())}),
+      [appl(
+          prod(
+            sort("Exp"),
+            [lex("Id")],
+            {}),
+          [appl(
+              prod(
+                lex("Id"),
+                [iter(\char-class([range(97,122)]))],
+                {}),
+              [appl(
+                  regular(iter(\char-class([range(97,122)]))),
+                  [char(97)])[
+                  @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+                ]])[
+              @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(0,1,<1,0>,<1,1>)
+        ],appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+            ]])[
+          @loc=|prompt:///|(1,0,<1,1>,<1,1>)
+        ],appl(
+          prod(
+            lit("+"),
+            [\char-class([range(43,43)])],
+            {}),
+          [char(43)]),appl(
+          prod(
+            layouts("WS"),
+            [\iter-star(\char-class([
+                    range(9,10),
+                    range(32,32)
+                  ]))],
+            {}),
+          [appl(
+              regular(\iter-star(\char-class([
+                      range(9,10),
+                      range(32,32)
+                    ]))),
+              [])[
+              @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+            ]])[
+          @loc=|prompt:///|(2,0,<1,2>,<1,2>)
+        ],appl(
+          prod(
+            sort("Exp"),
+            [
+              sort("Exp"),
+              layouts("WS"),
+              lit("*"),
+              layouts("WS"),
+              sort("Exp")
+            ],
+            {}),
+          [appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                    ]])[
+                  @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(2,1,<1,2>,<1,3>)
+            ],appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+                ]])[
+              @loc=|prompt:///|(3,0,<1,3>,<1,3>)
+            ],appl(
+              prod(
+                lit("*"),
+                [\char-class([range(42,42)])],
+                {}),
+              [char(42)]),appl(
+              prod(
+                layouts("WS"),
+                [\iter-star(\char-class([
+                        range(9,10),
+                        range(32,32)
+                      ]))],
+                {}),
+              [appl(
+                  regular(\iter-star(\char-class([
+                          range(9,10),
+                          range(32,32)
+                        ]))),
+                  [])[
+                  @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+                ]])[
+              @loc=|prompt:///|(4,0,<1,4>,<1,4>)
+            ],appl(
+              prod(
+                sort("Exp"),
+                [lex("Id")],
+                {}),
+              [appl(
+                  prod(
+                    lex("Id"),
+                    [iter(\char-class([range(97,122)]))],
+                    {}),
+                  [appl(
+                      regular(iter(\char-class([range(97,122)]))),
+                      [char(97)])[
+                      @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                    ]])[
+                  @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+                ]])[
+              @loc=|prompt:///|(4,1,<1,4>,<1,5>)
+            ]])[
+          @loc=|prompt:///|(2,3,<1,2>,<1,5>)
+        ]])[
+      @loc=|prompt:///|(0,5,<1,0>,<1,5>)
+    ]})[
+  @loc=|prompt:///|(0,5,<1,0>,<1,5>)
+]
+ok
+rascal>parse(#Exp, "a+a*b")
+|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>): Ambiguity(|unknown:///|(0,5,<1,0>,<1,5>),"Exp","a+a*b")
+        at *** somewhere ***(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>))
+        at parse(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(14305,5,<442,80>,<442,85>))
+
+
+rascal>import util::
+util::   
+rascal>import util::ValueUI;
+ok
+rascal>text(t)
+ok
+rascal>import util::
+util::   
+rascal>import vis::ParseTree;
+ok
+rascal>visP
+visPT          visParsetree   
+rascal>visP
+visPT          visParsetree   
+rascal>visParsetree(t)
+Figure: _tree(
+  [
+    _ellipse([
+        unpack([
+            hsize(5),
+            vsize(5)
+          ]),
+        mouseOver(_box(
+            _text(
+              "syntax Stat =\n  \"if\"  \"(\"  Exp  \")\"  Stat \n  ;",
+              []),
+            [
+              unpack([
+                  hgrow(1.2),
+                  vgrow(1.2)
+                ]),
+              unpack([
+                  hresizable(false),
+                  vresizable(false)
+                ]),
+              fillColor("yellow")
+            ]))
+      ]),
+    _box(
+      _text(
+        "if",
+        []),
+      [unpack([
+            hsize(5),
+            vsize(5)
+          ])]),
+    _box([
+        unpack([
+            hsize(5),
+            vsize(5)
+          ]),
+        fillColor("grey"),
+        mouseOver(_box(
+            _text(
+              "",
+              []),
+            [
+              unpack([
+                  hgrow(1.2),
+                  vgrow(1.2)
+                ]),
+              unpack([
+                  hresizable(false),
+                  vresizable(false)
+                ]),
+              fillColor("yellow")
+            ]))
+      ]),
+    _box(
+      _text(
+        "(",
+        []),
+      [unpack([
+            hsize(5),
+            vsize(5)
+          ])]),
+    _box([
+        unpack([
+            hsize(5),
+            vsize(5)
+          ]),
+        fillColor("grey"),
+        mouseOver(_box(
+            _text(
+              "",
+              []),
+            [
+              unpack([
+                  hgrow(1.2),
+                  vgrow(1.2)
+                ]),
+              unpack([
+                  hresizable(false),
+                  vresizable(false)
+                ]),
+              fillColor("yellow")
+            ]))
+      ]),
+    _tree(
+      [
+        _ellipse([
+            unpack([
+                hsize(5),
+                vsize(5)
+              ]),
+            mouseOver(_box(
+                _text(
+                  "syntax Exp =\n  Id \n  ;",
+                  []),
+                [
+                  unpack([
+                      hgrow(1.2),
+                      vgrow(1.2)
+                    ]),
+                  unpack([
+                      hresizable(false),
+                      vresizable(false)
+                    ]),
+                  fillColor("yellow")
+                ]))
+          ]),
+        _box(
+          _text(
+            "a",
+            []),
+          [unpack([
+                hsize(5),
+                vsize(5)
+              ])])
+      ],
+      [std(unpack([
+              hresizable(false),
+              vresizable(false)
+            ]))]),
+    _box([
+        unpack([
+            hsize(5),
+            vsize(5)
+          ]),
+        fillColor("grey"),
+        mouseOver(_box(
+            _text(
+              "",
+              []),
+            [
+              unpack([
+                  hgrow(1.2),
+                  vgrow(1.2)
+                ]),
+              unpack([
+                  hresizable(false),
+                  vresizable(false)
+                ]),
+              fillColor("yellow")
+            ]))
+      ]),
+    _box(
+      _text(
+        ")",
+        []),
+      [unpack([
+            hsize(5),
+            vsize(5)
+          ])]),
+    _box([
+        unpack([
+            hsize(5),
+            vsize(5)
+          ]),
+        fillColor("grey"),
+        mouseOver(_box(
+            _text(
+              "",
+              []),
+            [
+              unpack([
+                  hgrow(1.2),
+                  vgrow(1.2)
+                ]),
+              unpack([
+                  hresizable(false),
+                  vresizable(false)
+                ]),
+              fillColor("yellow")
+            ]))
+      ]),
+    _tree(
+      [
+        _ellipse([
+            unpack([
+                hsize(5),
+                vsize(5)
+              ]),
+            mouseOver(_box(
+                _text(
+                  "syntax Stat nop =\n   nop: \";\" \n  ;",
+                  []),
+                [
+                  unpack([
+  ...
+rascal>render(visParsetree(t))
+|prompt:///|(0,6,<1,0>,<1,6>): Undeclared variable: render
+Advice: |http://tutor.rascal-mpl.org/Errors/Static/UndeclaredVariable/UndeclaredVariable.html|
+
+rascal>re
+readFile            readFileBytes       readFileEnc         readFileLines       readFileLinesEnc    real                reducer             reference           registerLocations   regular             reified             
+rel                 remove              removeFromBag       renderParsetree     resolveLocation     reverse             
+rascal>renderParsetree(t)
+ok
+rascal>renderParsetree(t)
+ok
+rascal>/amb(_) := t
+bool: false
+rascal>parse(#Exp, "a+a*b")
+|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>): Ambiguity(|unknown:///|(0,5,<1,0>,<1,5>),"Exp","a+a*b")
+        at *** somewhere ***(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>))
+        at parse(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(14305,5,<442,80>,<442,85>))
+
+
+rascal>for (/a:amb(_) := t) println(a);
+list[void]: []
+rascal>import Ambiguity;
+|prompt:///|(0,17,<1,0>,<1,17>): Could not import module Ambiguity: can not find in search path
+Advice: |http://tutor.rascal-mpl.org/Errors/Static/ModuleImport/ModuleImport.html|
+
+rascal>import analysis::
+analysis::   
+rascal>import analysis::gra
+analysis::grammars::   analysis::graphs::     
+rascal>import analysis::grammars::
+analysis::grammars::   
+rascal>import analysis::grammars::Ambiguity
+analysis::grammars::Ambiguity   
+rascal>import analysis::grammars::Ambiguity;
+ok
+rascal>diagnose(parse(#Exp, "a+a*b"))
+|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>): Ambiguity(|unknown:///|(0,5,<1,0>,<1,5>),"Exp","a+a*b")
+        at *** somewhere ***(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(13348,964,<407,0>,<442,87>))
+        at parse(|project://rascal/src/org/rascalmpl/library/ParseTree.rsc|(14305,5,<442,80>,<442,85>))
+
+
+rascal>diagnose(parse(#Exp, "a+a*b", allowAmbiguity=true))
+list[Message]: [
+  info(
+    "Ambiguity cluster with 3 alternatives",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Production unique to the one alternative: Exp = Exp  \"+\"  Exp ;",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Production unique to the other alternative: Exp = left Exp  \"+\"  Exp ;",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "The alternatives have different productions at the top, one has \n  Exp = Exp  \"+\"  Exp \nwhile the other has\n  Exp = left Exp  \"+\"  Exp ",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Re-use of these literals is causing different interpretations of the same source.",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Literal \"+\" is used in both\n  Exp = Exp  \"+\"  Exp  and\n  Exp = left Exp  \"+\"  Exp ",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning(
+    "You should give this production a good label [Exp = Id ]",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  error(
+    "You could safely restrict the nesting of\n  Exp = Id  \nunder\n  Exp = Exp  \"+\"  Exp \nusing the ! operator on argument 0: !labelX",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning(
+    "You should give this production a good label [Exp = Id ]",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  error(
+    "You could safely restrict the nesting of\n  Exp = Id  \nunder\n  Exp = left Exp  \"+\"  Exp \nusing the ! operator on argument 0: !labelX",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning(
+    "You should give this production a good label [Exp = Exp  \"*\"  Exp ]",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  error(
+    "You could safely restrict the nesting of\n  Exp = Exp  \"*\"  Exp  \nunder\n  Exp = left Exp  \"+\"  Exp \nusing the ! operator on argument 2: !labelX",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning(
+    "You should give this production a good label [Exp = Exp  \"*\"  Exp ]",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  error(
+    "You could safely restrict the nesting of\n  Exp = Exp  \"*\"  Exp  \nunder\n  Exp = Exp  \"+\"  Exp \nusing the ! operator on argument 2: !labelX",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Production unique to the one alternative: Exp = Exp  \"+\"  Exp ;",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Production unique to the other alternative: Exp = left Exp  \"+\"  Exp ;",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "The alternatives have different productions at the top, one has \n  Exp = Exp  \"+\"  Exp \nwhile the other has\n  Exp = Exp  \"*\"  Exp ",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Re-use of these literals is causing different interpretations of the same source.",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  info(
+    "Literal \"+\" is used in both\n  Exp = Exp  \"+\"  Exp  and\n  Exp = left Exp  \"+\"  Exp ",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning(
+    "You should give this production a good label [Exp = Id ]",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  error(
+    "You could safely restrict the nesting of\n  Exp = Id  \nunder\n  Exp = Exp  \"+\"  Exp \nusing the ! operator on argument 0: !labelX",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning(
+    "You should give this production a good label [Exp = Id ]",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  error(
+    "You could safely restrict the nesting of\n  Exp = Id  \nunder\n  Exp = Exp  \"*\"  Exp \nusing the ! operator on argument 2: !labelX",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning(
+    "You should give this production a good label [Exp = Exp  \"*\"  Exp ]",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  error(
+    "You could safely restrict the nesting of\n  Exp = Exp  \"*\"  Exp  \nunder\n  Exp = Exp  \"+\"  Exp \nusing the ! operator on argument 2: !labelX",
+    |unknown:///|(0,5,<1,0>,<1,5>)),
+  warning...
