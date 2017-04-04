@@ -4,7 +4,7 @@ module lang::rust::\syntax
 
 layout Whitespace = [\ \t\r\n]* !>> [\ \t\r\n];
 
-lexical Identifier = [a-zA-Z][a-zA-Z0-9]* !>> [a-zA-Z0-9];
+lexical Ident = [a-zA-Z][a-zA-Z0-9]* !>> [a-zA-Z0-9];
 
 lexical Hash = '#';
 lexical Shebang = Hash '!' '[';
@@ -1206,3 +1206,148 @@ lexical Maybe_label
 
 lexical Let
 = 'let' Pattern Maybe_type_ascription Maybe_init_expression ';';
+
+/* #### #### Macros and misc. rules #### ####*/
+
+lexical Literal
+= Literal_byte
+| Literal_char
+| Literal_integer
+| Literal_float
+| True
+| False
+| String;
+
+lexical String
+= Literal_string
+| Literal_string_raw
+| Literal_byte_string
+| Literal_byte_string_raw;
+
+lexical Maybe_identifier
+= /*empty*/
+| Identifier;
+
+lexical Identifier
+= Ident;
+
+lexical Unpaired_token
+= '\<\<'                        
+| '\>\>'                        
+| '\<='                         
+| '=='                       
+| '!='                         
+| '\>='                         
+| '&&'                     
+| '||'                       
+| '\<-'                     
+| '\<\<='                      
+| '\>\>='                      
+| '-='                    
+| '&='                      
+| '|='                       
+| '+='                     
+| '*='                     
+| '/='                    
+| '^='                    
+| '%='                  
+| '..'                     
+| '...'                  
+| '::'                    
+| '-\>'                     
+| '=\>'                  
+| LIT_BYTE                   
+| LIT_CHAR                   
+| LIT_INTEGER                
+| LIT_FLOAT                  
+| LIT_STR                    
+| LIT_STR_RAW                
+| LIT_BYTE_STR               
+| LIT_BYTE_STR_RAW           
+| Ident                      
+| '_'                 
+| '\''                   
+| 'self'                       
+| 'static'                     
+| 'as'                         
+| 'break'                      
+| 'crate'                      
+| 'else'                       
+| 'enum'                       
+| 'extern'                     
+| 'false'                      
+| 'fn'                         
+| 'for'                        
+| 'if'                         
+| 'impl'                       
+| 'in'                         
+| 'let'                        
+| 'loop'                       
+| 'match'                      
+| 'mod'                        
+| 'move'                       
+| 'mut'                        
+| 'priv'                       
+| 'pub'                        
+| 'ref'                        
+| 'return'                     
+| 'struct'                     
+| 'true'                       
+| 'trait'                      
+| 'type'                       
+| 'unsafe'                     
+| 'use'                        
+| 'while'                      
+| 'continue'                   
+| 'proc'                       
+| 'box'                        
+| 'const'                      
+| 'where'                      
+| 'typeof'                     
+| INNER_DOC_COMMENT          
+| OUTER_DOC_COMMENT          
+| Shebang                    
+| '\'static'            
+| ';'                        
+| ','                        
+| '.'                        
+| '@'                        
+| '#'                        
+| '~'                        
+| ':'                        
+| '$'                        
+| '='                        
+| '?'                        
+| '!'                        
+| '\<'                        
+| '\>'                        
+| '-'                        
+| '&'                        
+| '|'                        
+| '+'                        
+| '*'                        
+| '/'                        
+| '^'                        
+| '%';
+
+lexical Token_trees
+= /*empty*/
+| Token_trees Token_tree;
+
+lexical Token_tree
+= Delimited_token_trees
+| Unpaired_token;
+
+lexical Delimited_token_trees
+= Parens_delimited_token_trees
+| Braces_delimited_token_trees
+| Brackets_delimited_token_trees;
+
+lexical Parens_delimited_token_trees
+= '(' Token_Trees ')';
+
+lexical Braces_delimited_token_trees
+= '{' Token_trees '}';
+
+lexical Brackets_delimited_token_trees
+= '[' Token_trees ']';
