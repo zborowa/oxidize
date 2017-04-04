@@ -107,15 +107,15 @@ lexical Use_item
 lexical View_path
 = Path_no_types_allowed
 | Path_no_types_allowed '::' '{' '}'
-|                       '::' '{' '}'
+| '::' '{' '}'
 | Path_no_types_allowed '::' '{' Identifiers_or_self '}'
-|                       '::' '{' Identifiers_or_self '}'
+| '::' '{' Identifiers_or_self '}'
 | Path_no_types_allowed '::' '{' Identifiers_or_self ',' '}'
-|                       '::' '{' Identifiers_or_self '}'
+| '::' '{' Identifiers_or_self '}'
 | Path_no_types_allowed '::' '*'
-|                            '{' '}'
-|                            '{' Identifiers_or_self '}'
-|                            '{' Identifiers_or_self ',' '}'
+| '{' '}'
+| '{' Identifiers_or_self '}'
+| '{' Identifiers_or_self ',' '}'
 | Path_no_types_allowed 'as' Identifier;
 
 lexical Block_item
@@ -423,7 +423,7 @@ lexical Named_arg
 lexical Ret_type
 = '-\>' '!'
 | '-\>' Type
-> Identifier /*empty*/
+| Identifier /*empty*/
 ;
 
 lexical Generic_params
@@ -459,7 +459,7 @@ lexical Where_predicate
 
 lexical Maybe_for_lifetimes
 = 'for' '\<' LifeTime '\>'
-> 'for' /*empty*/
+| 'for' /*empty*/
 ;
 
 lexical Type_params
@@ -474,20 +474,12 @@ lexical Path_no_types_allowed
 | Path_no_types_allowed '::' Identifier;
 
 lexical Path_generic_args_without_colons
-=
-/*: %prec IDENT
-  ident
-| %prec IDENT
-  ident generic_args
-| %prec IDENT
-  ident '(' maybe_ty_sums ')' ret_ty
-| %prec IDENT
-  path_generic_args_without_colons MOD_SEP ident
-| %prec IDENT
-  path_generic_args_without_colons MOD_SEP ident generic_args
-| %prec IDENT
-  path_generic_args_without_colons MOD_SEP ident '(' maybe_ty_sums ')' ret_ty
-*/
+= Identifier
+| Identifier Generic_args
+| Identifier '(' Maybe_type_sums ')' Ret_type
+| Path_generic_args_without_colons '::' Identifier
+| Path_generic_args_without_colons '::' Identifier Generic_args
+| Path_generic_args_without_colons '::' Identifier '(' Maybe_type_sums ')' Ret_type
 ;
 
 lexical Generic_args
