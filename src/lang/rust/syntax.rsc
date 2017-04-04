@@ -11,6 +11,7 @@ lexical Shebang = Hash '!' '[';
 lexical Shebang_line = Hash '!' '^[\n]*\n';
 
 /* #### #### Items and attributes #### #### */
+
 lexical Crate
 = Maybe_shebang Inner_attributes Maybe_mod_items
 | Maybe_shebang Maybe_mod_items;
@@ -514,7 +515,86 @@ lexical Bindings
 = ',' Bindings
 | /*empty*/;
 
+/* #### #### Patterns #### #### */
+
+lexical Pattern
+= '_'
+| '&' Pattern
+| '&' 'mut' Pattern
+| '&&' Pattern
+| '(' ')'
+| '(' Pattern_tuple ')'
+| '(' Pattern_tuple ',' ')'
+| '[' Pattern_vector ']'
+| Literal_or_path
+| Literal_or_path '...' Literal_or_path
+| Path_expression '{' Pattern_structure '}'
+| Path_expression '(' '..' ')'
+| Path_expression '(' Pattern_tuple ')'
+| Path_expression '!' Maybe_identifier Delimited_token_trees
+| Binding_mode Identifier
+| Identifier '@' Pattern
+| Binding_mode Identifier '@' Pattern
+| 'box' Pattern
+| '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier Maybe_as_trait_ref '\>' '::' Identifier;
+
+lexical Patterns_or
+= Pattern
+| Patterns_or '|' Pattern;
+
+lexical Binding_mode
+= 'ref'
+| 'ref' 'mut'
+| 'mut';
+
+lexical Literal_or_path
+= Path_expression
+| Literal
+| '-' Literal;
+
+lexical Pattern_field
+= Identifier
+| Binding_mode Identifier
+| 'box' Identifier
+| 'box' Binding_mode Identifier
+| Identifier ':' Pattern
+| Binding_mode Identifier ':' Pattern;
+
+lexical Pattern_fields
+= Pattern_field
+| Pattern_fields ',' Pattern_field;
+
+lexical Pattern_structure
+= Patterns_fields
+| Pattern_fields ','
+| Pattern_fields ',' '..'
+| '..';
+
+lexical Pattern_tuple
+= Pattern
+| Patterns_tuple ',' Pattern;
+
+lexical Pattern_vector
+= Pattern_vector_elts
+| Pattern_vector_elts ','
+| Pattern_vector_elts '..'
+| Pattern_vector_elts ',' '..'
+| Pattern_vector_elts '..' ',' Pattern_vector_elts
+| Pattern_vector_elts '..' ',' Pattern_vector_elts ','
+| Pattern_vector_elts ',' '..' ',' Pattern_vector_elts
+| Pattern_vector_elts ',' '..' ',' Pattern_vector_elts ','
+| '..' ',' Pattern_vector_elts
+| '..' ',' Pattern_vector_elts ','
+| '..'
+| /*empty*/;
+
+lexical Pattern_vector_elts
+= Pattern
+| Pattern_vector_elts ',' Pattern;
+
 /* #### #### Types #### #### */
+
 lexical Type 
 = Primitive_type;
 
