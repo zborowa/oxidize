@@ -633,14 +633,14 @@ lexical Type_closure
 | 'unsafe' '||' Maybe_bounds Ret_type
 | '||' Maybe_bounds Ret_type;
 
-lexical Type_process 
+lexical Type_proc 
 = 'proc' Generic_params Fn_params Maybe_bounds Ret_type;
 
 lexical For_in_type
 = 'for' '\<' Maybe_lifetime '\>' For_in_type_suffix;
 
 lexical For_in_type_suffix
-= Type_process
+= Type_proc
 | Type_bare_fn
 | Trait_ref
 | Type_closure;
@@ -751,3 +751,458 @@ lexical Lifetime
 lexical Trait_ref
 = Path_generic_args_without_colons
 | '::' Path_generic_args_without_colons;
+
+/* #### #### Blocks, Statements, and expressions #### ####*/
+
+lexical Inner_attributes_and_block
+= '{' Maybe_inner_attributes Maybe_statements '}';
+
+lexical Block
+= '{' Maybe_statement '}';
+
+lexical Maybe_statement
+= Statements
+| Statements Nonblock_expression
+| Nonblock_expression
+| /*empty*/;
+
+lexical Statements
+= Statement
+| Statements Statement;
+
+lexical Statement
+= Let
+| Statement_item
+| 'pub' Statement_item
+| Outer_attributes Statement_item
+| Outer_attributes 'pub' Statement_item
+| Full_block_expression
+| Block
+| Nonblock_expression ';'
+| ';';
+
+lexical Maybe_expressions
+= Expressions
+| Expressions ','
+| /*empty*/;
+
+lexical Maybe_expression
+= Expression
+| /*empty*/;
+
+lexical Expressions
+= Expression
+| Expressions ',' Expression;
+
+lexical Path_expression
+= Path_generic_args_with_colons
+| '::' Path_generic_args_with_colons
+| 'self' '::' Path_generic_args_with_colons;
+
+lexical Path_generic_args_with_colons
+= Identifier
+| Path_generic_args_with_colons '::' Identifier
+| Path_generic_args_with_colons '::' Generic_args;
+
+lexical Macro_expression
+= Path_expression '!' Maybe_identifier Parens_delimited_token_trees
+| Path_expression '!' Maybe_identifier Brackets_delimited_token_trees;
+
+lexical Nonblock_expression
+= Literal
+| Path_expression
+| 'self'
+| Macro_expression
+| Path_expression '{' Structure_expression_fields '}'
+| Nonblock_expression '.' Path_generic_args_with_colons
+| Nonblock_expression '.' Literal_integer
+| Nonblock_expression '[' Maybe_expression ']'
+| Nonblock_expression '(' Maybe_expression ')'
+| '[' Vector_expression ']'
+| '(' Maybe_expression ')'
+| 'continue'
+| 'continue' Lifetime
+| 'return'
+| 'return' Expression
+| 'break'
+| 'break' Lifetime
+| Nonblock_expression '\<-' Expression
+| Nonblock_expression '=' Expression
+| Nonblock_expression '\<\<=' Expression
+| Nonblock_expression '\>\>=' Expression
+| Nonblock_expression '-=' Expression
+| Nonblock_expression '&=' Expression
+| Nonblock_expression '|=' Expression
+| Nonblock_expression '+=' Expression
+| Nonblock_expression '*=' Expression
+| Nonblock_expression '/=' Expression
+| Nonblock_expression '^=' Expression
+| Nonblock_expression '%=' Expression
+| Nonblock_expression '||' Expression
+| Nonblock_expression '&&' Expression
+| Nonblock_expression '==' Expression
+| Nonblock_expression '!=' Expression
+| Nonblock_expression '\<' Expression
+| Nonblock_expression '\>' Expression
+| Nonblock_expression '\<=' Expression
+| Nonblock_expression '\>=' Expression
+| Nonblock_expression '|' Expression
+| Nonblock_expression '^' Expression
+| Nonblock_expression '&' Expression
+| Nonblock_expression '\<\<' Expression
+| Nonblock_expression '\>\>' Expression
+| Nonblock_expression '+' Expression
+| Nonblock_expression '-' Expression
+| Nonblock_expression '*' Expression
+| Nonblock_expression '/' Expression
+| Nonblock_expression '%' Expression
+| Nonblock_expression '..'
+| Nonblock_expression '..' Expression
+| '..' Expression
+| '..'
+| Nonblock_expression 'as' Type
+| 'box' Nonparen_expression
+| 'box' '(' Maybe_expression ')' Nonblock_expression
+| Expression_qualified_path
+| Nonblock_prefix_expression;
+
+lexical Expression
+= Literal
+| Path_expression
+| 'self'
+| Macro_expression
+| Path_expression '{' Structure_expression_fields '}'
+| Expression '.' Path_generic_args_with_colons
+| Expression '.' Literal_integer
+| Expression '[' Maybe_expression ']'
+| Expression '(' Maybe_expressions ')'
+| '(' Maybe_expressions ')'
+| '[' Vector_expression ']'
+| 'continue'
+| 'continue' Identifier
+| 'return'
+| 'return' Expression
+| 'break'
+| 'break' Identifier
+| Expression '\<-' Expression
+| Expression '=' Expression
+| Expression '\<\<=' Expression
+| Expression '\>\>=' Expression
+| Expression '-=' Expression
+| Expression '&=' Expression
+| Expression '|=' Expression
+| Expression '+=' Expression
+| Expression '*=' Expression
+| Expression '/=' Expression
+| Expression '^=' Expression
+| Expression '%=' Expression
+| Expression '||' Expression
+| Expression '&&' Expression
+| Expression '==' Expression
+| Expression '!=' Expression
+| Expression '\<' Expression
+| Expression '\>' Expression
+| Expression '\<=' Expression
+| Expression '\>=' Expression
+| Expression '|' Expression
+| Expression '^' Expression
+| Expression '&' Expression
+| Expression '\<\<' Expression
+| Expression '\>\>' Expression
+| Expression '+' Expression
+| Expression '-' Expression
+| Expression '*' Expression
+| Expression '/' Expression
+| Expression '%' Expression
+| Expression '..'
+| Expression '..' Expression
+| '..' Expression
+| '..'
+| Expression 'as' Type
+| 'box' Nonparen_expression
+| 'box' '(' Maybe_expression ')' Expression
+| Expression_qualified_path
+| Block_expression
+| Block
+| Nonblock_prefix_expression;
+
+lexical Nonparen_expression
+= Literal
+| Path_expression
+| 'self'
+| Macro_expression
+| Path_expression '{' Structure_expression_fields '}'
+| Nonparen_expression '.' Path_generic_args_with_colons
+| Nonparen_expression '.' Literal_integer
+| Nonparen_expression '[' Maybe_expression ']'
+| Nonparen_expression '(' Maybe_expressions ')'
+| '[' Vector_expression ']'
+| 'continue'
+| 'continue' Identifier
+| 'return'
+| 'return' Expression
+| 'break'
+| 'break' Identifier
+| Nonparen_expression '\<-' Nonparen_expression
+| Nonparen_expression '=' Nonparen_expression
+| Nonparen_expression '\<\<=' Nonparen_expression
+| Nonparen_expression '\>\>=' Nonparen_expression
+| Nonparen_expression '-=' Nonparen_expression
+| Nonparen_expression '&=' Nonparen_expression
+| Nonparen_expression '|=' Nonparen_expression
+| Nonparen_expression '+=' Nonparen_expression
+| Nonparen_expression '*=' Nonparen_expression
+| Nonparen_expression '/=' Nonparen_expression
+| Nonparen_expression '^=' Nonparen_expression
+| Nonparen_expression '%=' Nonparen_expression
+| Nonparen_expression '||' Nonparen_expression
+| Nonparen_expression '&&' Nonparen_expression
+| Nonparen_expression '==' Nonparen_expression
+| Nonparen_expression '!=' Nonparen_expression
+| Nonparen_expression '\<' Nonparen_expression
+| Nonparen_expression '\>' Nonparen_expression
+| Nonparen_expression '\<=' Nonparen_expression
+| Nonparen_expression '\>=' Nonparen_expression
+| Nonparen_expression '|' Nonparen_expression
+| Nonparen_expression '^' Nonparen_expression
+| Nonparen_expression '&' Nonparen_expression
+| Nonparen_expression '\<\<' Nonparen_expression
+| Nonparen_expression '\>\>' Nonparen_expression
+| Nonparen_expression '+' Nonparen_expression
+| Nonparen_expression '-' Nonparen_expression
+| Nonparen_expression '*' Nonparen_expression
+| Nonparen_expression '/' Nonparen_expression
+| Nonparen_expression '%' Nonparen_expression
+| Nonparen_expression '..'
+| Nonparen_expression '..' Nonparen_expression
+| '..' Nonparen_expression
+| '..'
+| Nonparen_expression 'as' Type
+| 'box' Nonparen_expression
+| 'box' '(' Maybe_expression ')' Expression
+| Expression_qualified_path
+| Block_expression
+| Block
+| Nonblock_prefix_expression;
+
+lexical Expression_nostructure
+= Literal
+| Path_expression
+| 'self'
+| Macro_expression
+| Expression_nostructure '.' Path_generic_args_with_colons
+| Expression_nostructure '.' Literal_integer
+| Expression_nostructure '[' Maybe_expression ']'
+| Expression_nostructure '(' Maybe_expressions ')'
+| '[' Vector_expression ']'
+| '(' Maybe_expression ')'
+| 'continue'
+| 'continue' Identifier
+| 'return'
+| 'return' Expression
+| 'break'
+| 'break' Identifier
+| Expression_nostructure '\<-' Expression_nostructure
+| Expression_nostructure '=' Expression_nostructure
+| Expression_nostructure '\<\<=' Expression_nostructure
+| Expression_nostructure '\>\>=' Expression_nostructure
+| Expression_nostructure '-=' Expression_nostructure
+| Expression_nostructure '&=' Expression_nostructure
+| Expression_nostructure '|=' Expression_nostructure
+| Expression_nostructure '+=' Expression_nostructure
+| Expression_nostructure '*=' Expression_nostructure
+| Expression_nostructure '/=' Expression_nostructure
+| Expression_nostructure '^=' Expression_nostructure
+| Expression_nostructure '%=' Expression_nostructure
+| Expression_nostructure '||' Expression_nostructure
+| Expression_nostructure '&&' Expression_nostructure
+| Expression_nostructure '==' Expression_nostructure
+| Expression_nostructure '!=' Expression_nostructure
+| Expression_nostructure '\<' Expression_nostructure
+| Expression_nostructure '\>' Expression_nostructure
+| Expression_nostructure '\<=' Expression_nostructure
+| Expression_nostructure '\>=' Expression_nostructure
+| Expression_nostructure '|' Expression_nostructure
+| Expression_nostructure '^' Expression_nostructure
+| Expression_nostructure '&' Expression_nostructure
+| Expression_nostructure '\<\<' Expression_nostructure
+| Expression_nostructure '\>\>' Expression_nostructure
+| Expression_nostructure '+' Expression_nostructure
+| Expression_nostructure '-' Expression_nostructure
+| Expression_nostructure '*' Expression_nostructure
+| Expression_nostructure '/' Expression_nostructure
+| Expression_nostructure '%' Expression_nostructure
+| Expression_nostructure '..'
+| Expression_nostructure '..' Expression_nostructure
+| '..' Expression_nostructure
+| '..'
+| Expression_nostructure 'as' Type
+| 'box' Expression_nostructure
+| 'box' '(' Maybe_expression ')' Expression_nostructure
+| Expression_qualified_path
+| Block_expression
+| Block
+| Nonblock_prefix_expression;
+
+lexical Nonblock_prefix_expression_nostructure
+= '-' Expression_nostructure
+| '!' Expression_nostructure
+| '*' Expression_nostructure
+| '&' Maybe_mut Expression_nostructure
+| '&&' Maybe_mut Expression_nostructure
+| Lambda_expression_nostructure
+| 'move' Lambda_expression_nostructure
+| Proc_expression_nostructure;
+
+lexical Nonblock_prefix_expression
+= '-' Expression
+| '!' Expression
+| '*' Expression
+| '&' Maybe_mut Expression
+| '&&' Maybe_mut Expression
+| Lambda_expression
+| 'move' Lambda_expression
+| Proc_expression;
+
+lexical Expression_qualified_path
+= '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\ 
+  Maybe_qpath_params
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
+  Maybe_as_trait_ref '\>' '::' Identifier
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\ 
+  Generic_args Maybe_as_trait_ref '\>' '::' Identifier
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
+  Maybe_as_trait_ref '\>' Identifier Generic_args
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
+  Generic_args Maybe_as_trait_ref '\>' '::' Identifier Generic_args ;
+
+lexical Maybe_qpath_params
+= '::' Generic_args
+| /*empty*/;
+
+lexical Maybe_as_trait_ref
+= 'as' Trait_ref
+| /*empty*/;
+
+lexical Lambda_expression
+= '||' Ret_type Expression
+| '|' Maybe_unboxed_closure_kind '|' Ret_type Expression
+| '|' Inferrable_params '|' Ret_type Expression
+| '|' '&' Maybe_mut ':' Inferrable_params '|' Ret_type Expression
+| '|' ':' Inferrable_params '|' Ret_type Expression;
+
+lexical Lambda_expression_nostructure
+= '||' Ret_type Expression_nostructure
+| '|' Maybe_unboxed_closure_kind '|' Ret_type Expression_nostructure
+| '|' Inferrable_params '|' Ret_type Expression_nostructure
+| '|' '&' Maybe_mut ':' Inferrable_params '|' Ret_type Expression_nostructure
+| '|' ':' Inferrable_params '|' Ret_type Expression_nostructure;
+
+lexical Proc_expression
+= 'proc' '(' ')' Expression
+| 'proc' '(' Inferrable_params ')' Expression;
+
+lexical Proc_expression_nostructure
+= 'proc' '(' ')' Expression_nostructure
+| 'proc' '(' Inferrable_params ')' Expression_nostructure;
+
+lexical Vector_expression
+= Maybe_expression
+| Expressions ';' Expression;
+
+lexical Structure_expression_fields
+= Field_inits
+| Field_inits ','
+| Maybe_field_inits Defailt_field_init;
+
+lexical Maybe_field_inits
+= Field_inits
+| Field_inits ','
+| /*empty*/;
+
+lexical Field_inits
+= Field_init
+| Field_inits ',' Field_init;
+
+lexical Field_init
+= Identifier ':' Expression;
+
+lexical Default_field_init
+= '..' Expression;
+
+lexical Block_expression
+= Expression_match
+| Expression_if
+| Expression_if_let
+| Expression_while
+| Expression_while_let
+| Expression_loop
+| Expression_for
+| 'unsafe' Block
+| Path_expression '!' Maybe_identifier Braces_delimited_token_trees;
+
+lexical Full_block_expression
+= Block_expression
+| Full_block_expression '.' Path_generic_args_with_colons
+| Full_block_expression '.' Path_generic_args_with_colons '[' Maybe_expression ']'
+| Full_block_expression '.' Path_generic_args_with_colons '(' Maybe_expressions ')'
+| Full_block_expression '.' Literal_integer;
+
+lexical Expression_match
+= 'match' Expression_nostructure '{' '}'
+| 'match' Expression_nostructure '{' Match_clauses'}'
+| 'match' Expression_nostructure '{' Match_clauses Nonblock_match_clause '}'
+| 'match' Expression_nostructure '{' Nonblock_match_clause'}';
+
+lexical Match_clauses
+= Match_clause
+| Match_clauses Match_clause;
+
+lexical Match_clause
+= Nonblock_match_clause ','
+| Block_match_clause
+| Block_match_clause ',';
+
+lexical Nonblock_match_clause
+= Maybe_outer_attributes Patterns_or Maybe_guard '=\>' Nonblock_expression
+| Maybe_outer_attributes Patterns_or Maybe_guard '=\>' Full_block_expression;
+
+lexical Block_match_clause
+= Maybe_outer_attributes Patterns_or Maybe_guard '=\>' Block;
+
+lexical Maybe_guard
+= 'if' Expression_nostructure
+| /*empty*/;
+
+lexical Expression_if
+= 'if' Expression_nostructure Block
+| 'if' Expression_nostructure Block 'else' Block_or_if;
+
+lexical Expression_if_let
+= 'if' 'let' Pattern '=' Expression_nostructure Block
+| 'if' 'let' Pattern '=' Expression_nostructure Block 'else' Block_or_if;
+
+lexical Block_or_if
+= Block
+| Expression_if
+| Expression_if_let;
+
+
+lexical Expression_while
+= Maybe_label 'while' Expression_nostructure Block;
+
+lexical Expression_while_let
+= Maybe_label 'while' 'let' Pattern '=' Expression_nostructure Block;
+
+lexical Expression_loop
+= Maybe_label 'loop' Block;
+
+lexical Expression_for
+= Maybe_label 'for' Pattern 'in' Expression_nostructure Block;
+
+lexical Maybe_label
+= Lifetime ':'
+| /*empty*/;
+
+lexical Let
+= 'let' Pattern Maybe_type_ascription Maybe_init_expression ';';
