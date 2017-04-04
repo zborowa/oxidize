@@ -588,55 +588,166 @@ lexical Pattern_vector_elts
 /* #### #### Types #### #### */
 
 lexical Type 
-= Primitive_type;
+= Type_primitive
+| Type_closure
+| '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier
+| '\<\<' Type_sum Maybe_as_trait_ref '\>\>' '::' Identifier Maybe_as_trait_ref '\>' '::' Identifier
+| '(' Type_sums ')'
+| '(' Type_sums ',' ')'
+| '(' ')';
 
-lexical Primitive_type
-//: %prec IDENT path_generic_args_without_colons
-//| %prec IDENT MOD_SEP path_generic_args_without_colons
-//| %prec IDENT SELF MOD_SEP path_generic_args_without_colons
-= 'Box' Type
+lexical Type_primitive
+= Path_generic_args_without_colons
+| '::' Path_Generic_args_without_colons
+| 'self' '::' Path_generic_args_without_colons
+|'Box' Type
 | '*' Mut_Const Type
 | '&' Type
 | '&' 'mut' Type
 | '&&' Type
 | '&&' 'mut' Type
-//| '&' lifetime maybe_mut ty
-//| ANDAND lifetime maybe_mut ty
+| '&' Lifetime Maybe_mut Type
+| '&&' Lifetime Maybe_mut Type
 | '[' Type ']'
 | '[' Type ',' '..' Expression']'
 | '[' Type ';' Expression ']'
 | 'typeof' '(' Expression ')'
 | '_'
-//| ty_bare_fn
-//| ty_proc
-//| for_in_type
+| Type_bare_fn
+| Type_proc
+| For_in_type
 ;
 
-lexical Type_fn_bare 
-= 'fn';
+lexical Type_bare_fn 
+= 'fn' Type_fn_decl
+| 'unsafe' 'fn' Type_fn_decl
+| 'extern' Maybe_abi 'fn' Type_fn_decl
+| 'unsafe' 'extern' Maybe_abi 'fn' Type_fn_decl;
+
+lexical Type_fn_decl
+= Generic_params Fn_anon_params Ret_type;
+
+lexical Type_closure
+= 'unsafe' '|' Anon_params '|' Maybe_bounds Ret_type
+| '|' Anon_params '|' Maybe_bounds Ret_type
+| 'unsafe' '||' Maybe_bounds Ret_type
+| '||' Maybe_bounds Ret_type;
+
+lexical Type_process 
+= 'proc' Generic_params Fn_params Maybe_bounds Ret_type;
+
+lexical For_in_type
+= 'for' '\<' Maybe_lifetime '\>' For_in_type_suffix;
+
+lexical For_in_type_suffix
+= Type_process
+| Type_bare_fn
+| Trait_ref
+| Type_closure;
+
+lexical Maybe_mut
+= 'mut'
+| 'mut' /*empty*/;
+
+lexical Maybe_mut_or_const
+= 'mut'
+| 'const' 
+| /*empty*/;
+
+lexical Type_qualified_path_and_generic_values
+= Type_qualified_path Maybe_bindings
+| Type_qualified_path ',' Type_sums Maybe_bindings;
+
+lexical Type_qualified_path
+= Type_sum 'as' Trait_ref '\>' '::' Identifier
+| Type_sum 'as' Trait_ref '\>' '::' Identifier '+' Type_param_bounds;
+
+lexical Maybe_type_sums
+= Type_sums
+| Type_sums ','
+| /*empty*/;
+
+lexical Type_sums
+= Type_sum
+| Type_sums ',' Type_sum;
+
+lexical Type_sum
+= Type
+| Type '+' Type_param_bounds;
+
+lexical Type_primitive_sum
+= Type_primitive
+| Type_primitive '+' Type_param_bounds;
+
+lexical Maybe_type_param_bounds
+= ':' Type_param_bounds
+| /*empty*/;
+
+lexical Type_param_bounds
+= Bounds_sequence
+| /*empty*/;
+
+lexical Bounds_sequence
+= Poly_bound
+| Bound_sequence '+' Poly_bound;
+
+lexical Poly_bound
+= 'for' '\<' Maybe_lifetime '\>' Bound
+| Bound
+| '?' Bound;
+
+lexical Bindings
+= Binding
+| Bindings ',' Binding;
+
+lexical Binding
+= Identifier '=' Type;
+
+lexical Type_param
+= Identifier Maybe_type_param_bounds Maybe_type_default
+| Identifier '?' Identifier Maybe_type_param_bounds Maybe_type_default;
+
+lexical Maybe_bounds
+= ':' Bounds
+| /*empty*/;
+
+lexical Bounds
+= Bound
+| Bounds '+' Bound;
+
+lexical Bound
+= Lifetime
+| Trait_ref;
+
+lexical Maybe_ltbounds
+= ':' Ltbounds
+| /*empty*/;
+
+lexical Ltbounds
+= Lifetime
+| LtBounds '+' Lifetime;
+
+lexical Maybe_type_default
+= '=' Type_sum
+| /*empty*/;
+
+lexical Maybe_lifetimes
+= Lifetimes
+| Lifetimes ','
+| /*empty*/;
 
 lexical Lifetimes
-= Lifetime_bounds
-| Lifetimes ',' Lifetime_bounds;
+= Lifetime_and_bounds
+| Lifetimes ',' Lifetime_and_bounds;
 
 lexical Lifetime_and_bounds
-= '\''
+= '\'' Maybe_ltbounds
 | '\'static';
-
-lexical Maybe_lifetime_bounds
-//: %prec SHIFTPLUS
-//  ':' ltbounds
-= /*empty*/;
-
-lexical Lifetime_bounds
-= Lifetime
-| Lifetime_bounds '+' Lifetime;
 
 lexical Lifetime
 = '\''
 | '\'static';
 
-lexical Mut_Const 
-= 'mut'
-| 'const'
-| /*empty*/;
+lexical Trait_ref
+= Path_generic_args_without_colons
+| '::' Path_generic_args_without_colons;
