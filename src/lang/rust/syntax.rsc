@@ -49,15 +49,17 @@ lexical Literal_byte_string
 lexical Literal_byte_string_raw 
 = "br\"[].\n*\"";
 
-lexical Hash = '#';
-lexical Shebang = Hash '!' '[';
-lexical Shebang_line = Hash '!' '^[\n]*\n';
+syntax Shebang 
+= '#!';
+
+syntax Shebang_line 
+= "#!" "[^[\n]*";
 
 /* #### #### Items and attributes #### #### */
 
 syntax Crate
-= Maybe_shebang Inner_attributes Maybe_mod_items
-| Maybe_shebang Maybe_mod_items;
+= crate:Maybe_shebang Inner_attributes Maybe_mod_items
+| crate:Maybe_shebang Maybe_mod_items;
 
 syntax Maybe_shebang
 = Shebang_line
@@ -68,19 +70,19 @@ syntax Maybe_inner_attributes
 | /*empty*/;
 
 syntax Inner_attributes
-= Inner_attribute
+= InnerAttrs:Inner_attribute
 | Inner_attributes Inner_attribute;
 
 syntax Inner_attribute
-= Shebang '[' Meta_item ']'
-| Inner_doc_comment;
+= InnerAttrs:Shebang '[' Meta_item ']'
+| InnerAttrs:Inner_doc_comment;
 
 syntax Maybe_outer_attributes
 = Outer_attributes
 | /*empty*/;
 
 syntax Outer_attributes
-= Outer_attributes
+= OuterAttrs:Outer_attributes
 | Outer_attributes Outer_attribute;
 
 syntax Outer_attribute
@@ -88,14 +90,14 @@ syntax Outer_attribute
 | Outer_doc_comment;
 
 syntax Meta_item
-= Identifier
-| Identifier '=' Literal
-| Identifier '(' Meta_sequence ')'
-| Identifier '(' Meta_sequence ',' ')';
+= MetaWord:Identifier
+| MetaNameValue:Identifier '=' Literal
+| MetaList:Identifier '(' Meta_sequence ')'
+| MetaList:Identifier '(' Meta_sequence ',' ')';
 
 syntax Meta_sequence 
 = /*empty*/
-| Meta_item
+| MetaItems:Meta_item
 | Meta_sequence ',' Meta_item;
 
 syntax Maybe_mod_items
@@ -103,14 +105,14 @@ syntax Maybe_mod_items
 | /*empty*/;
 
 syntax Mod_items
-= Mod_item
+= Items:Mod_item
 | Mod_items Mod_item;
 
 syntax Attributes_and_vis
-= Maybe_outer_attributes Visibility;
+= AttrsAndVis:Maybe_outer_attributes Visibility;
 
 syntax Mod_item
-= Attributes_and_vis Item;
+= Item:Attributes_and_vis Item;
 
 syntax Item 
 = Statement_item 
@@ -124,48 +126,48 @@ syntax Statement_item
 | View_item;
 
 syntax Item_static
-= 'static' Identifier ':' Type '=' Expression ';'
-| 'static' 'mut' Identifier ':' Type '=' Expression ';';
+= ItemStatic:'static' Identifier ':' Type '=' Expression ';'
+| ItemStatic:'static' 'mut' Identifier ':' Type '=' Expression ';';
 
 syntax Item_const
-= 'const' Identifier ':' Type '=' Expression ';';
+= ItemConst:'const' Identifier ':' Type '=' Expression ';';
 
 syntax Item_macro
-= Path_expression '!' Maybe_identifier Parens_delimited_token_trees ';'
-| Path_expression '!' Maybe_identifier Braces_delimited_token_trees
-| Path_expression '!' Maybe_identifier Brackets_delimited_token_trees ';';
+= ItemMacro:Path_expression '!' Maybe_identifier Parens_delimited_token_trees ';'
+| ItemMacro:Path_expression '!' Maybe_identifier Braces_delimited_token_trees
+| ItemMacro:Path_expression '!' Maybe_identifier Brackets_delimited_token_trees ';';
 
 syntax View_item
 = Use_item
 | Extern_fn_item
-| 'extern' 'crate' Identifier ';'
-| 'extern' 'crate' Identifier 'as' Identifier ';';
+| ViewItemExternCrate:'extern' 'crate' Identifier ';'
+| ViewItemExternCrate:'extern' 'crate' Identifier 'as' Identifier ';';
 
 syntax Extern_fn_item 
-= 'extern' Maybe_abi Item_fn;
+= ViewItemExternFn:'extern' Maybe_abi Item_fn;
 
 syntax Use_item
-= 'use' View_path ';';
+= ViewItemUse:'use' View_path ';';
 
 syntax View_path
-= Path_no_types_allowed
-| Path_no_types_allowed '::' '{' '}'
-| '::' '{' '}'
-| Path_no_types_allowed '::' '{' Identifiers_or_self '}'
-| '::' '{' Identifiers_or_self '}'
-| Path_no_types_allowed '::' '{' Identifiers_or_self ',' '}'
-| '::' '{' Identifiers_or_self '}'
-| Path_no_types_allowed '::' '*'
-| '{' '}'
-| '{' Identifiers_or_self '}'
-| '{' Identifiers_or_self ',' '}'
-| Path_no_types_allowed 'as' Identifier;
+= ViewPathSimple:Path_no_types_allowed
+| ViewPathList:Path_no_types_allowed '::' '{' '}'
+| ViewPathList:'::' '{' '}'
+| ViewPathList:Path_no_types_allowed '::' '{' Identifiers_or_self '}'
+| ViewPathList:'::' '{' Identifiers_or_self '}'
+| ViewPathList:Path_no_types_allowed '::' '{' Identifiers_or_self ',' '}'
+| ViewPathList:'::' '{' Identifiers_or_self '}'
+| ViewPathGlob:Path_no_types_allowed '::' '*'
+| ViewPathListEmpty:'{' '}'
+| ViewPathList:'{' Identifiers_or_self '}'
+| ViewPathList:'{' Identifiers_or_self ',' '}'
+| ViewPathSimple:Path_no_types_allowed 'as' Identifier;
 
 syntax Block_item
 = Item_fn
 | Item_unsafe_fn
 | Item_mod
-| Item_foreign_mod
+| ItemForeignMod:Item_foreign_mod
 | Item_struct
 | Item_enum
 | Item_trait
@@ -180,9 +182,9 @@ syntax Maybe_init_expression
 | /*empty*/;
 
 syntax Item_struct
-= 'struct' Identifier Generic_params Maybe_where_clause Struct_decl_args
-| 'struct' Identifier Generic_params Struct_tuple_args Maybe_where_clause ';'
-| 'struct' Identifier Generic_params Maybe_where_clause ';';
+= ItemStruct:'struct' Identifier Generic_params Maybe_where_clause Struct_decl_args
+| ItemStruct:'struct' Identifier Generic_params Struct_tuple_args Maybe_where_clause ';'
+| ItemStruct:'struct' Identifier Generic_params Maybe_where_clause ';';
 
 syntax Structure_declaration_args
 = '{' Structure_declaration_fields '}'
@@ -193,47 +195,47 @@ syntax Structure_typle_args
 | '(' Structure_tuple_fields ',' ')';
 
 syntax Structure_declaration_fields
-= Structure_declaration_field
+= StructFields:Structure_declaration_field
 | Structure_declaration_fields ',' Structure_declaration_field
 | /*empty*/;
 
 syntax Structure_decl_field
-= Attributes_and_vis Identifier ':' Type_sum;
+= StructField:Attributes_and_vis Identifier ':' Type_sum;
 
 syntax Structure_tuple_fields
-= Structure_tuple_field
+= StructFields:Structure_tuple_field
 | Structure_tuple_fields ',' Structure_tuple_field;
 
 syntax Structure_tuple_field
-= Attributes_and_vis Type_sum;
+= StructField:Attributes_and_vis Type_sum;
 
 syntax Item_enum
-= 'enum' Identifier Generic_params Maybe_where_clause '{' Enum_defs '}'
-| 'enum' Identifier Generic_params Maybe_where_clause '{' Enum_defs ',' '}';
+= ItemEnum:'enum' Identifier Generic_params Maybe_where_clause '{' Enum_defs '}'
+| ItemEnum:'enum' Identifier Generic_params Maybe_where_clause '{' Enum_defs ',' '}';
 
 syntax Enum_defs 
-= Enum_def
+= EnumDefs:Enum_def
 | Enum_defs ',' Enum_def
 | /*empty*/;
 
 syntax Enum_def
-= Attributes_and_vis Identifier Enum_args;
+= EnumDef:Attributes_and_vis Identifier Enum_args;
 
 syntax Enum_args
-= '{' Structure_decl_fields '}'
-| '{' Structure_decl_fields ',' '}'
-| '{' Maybe_type_sum '}'
-| '=' Expression
+= EnumArgs:'{' Structure_decl_fields '}'
+| EnumArgs:'{' Structure_decl_fields ',' '}'
+| EnumArgs:'{' Maybe_type_sum '}'
+| EnumArgs:'=' Expression
 | /*empty*/;
 
 syntax Item_mod
-= 'mod' Identifier ';'
-| 'mod' Identifier '{' Maybe_mod_items '}'
-| 'mod' Identifier '{' Inner_attrs Maybe_mod_items '}';
+= ItemMod:'mod' Identifier ';'
+| ItemMod:'mod' Identifier '{' Maybe_mod_items '}'
+| ItemMod:'mod' Identifier '{' Inner_attrs Maybe_mod_items '}';
 
 syntax Item_foreign_mod
-= 'extern' Maybe_abi '{' Maybe_foreign_items '}'
-| 'extern' Maybe_abi '{' Inner_attrs Maybe_foreign_items '}';
+= ItemForeignMod:'extern' Maybe_abi '{' Maybe_foreign_items '}'
+| ItemForeignMod:'extern' Maybe_abi '{' Inner_attrs Maybe_foreign_items '}';
 
 syntax Maybe_abi
 = String
@@ -244,19 +246,22 @@ syntax Maybe_foreign_items
 | /*empty*/;
 
 syntax Foreign_items
-= Foreign_item
+= ForeignItems:Foreign_item
 | Foreign_items Foreign_item;
 
 syntax Foreign_item
-= Attributes_and_vis 'static' Item_foreign_static
-| Attributes_and_vis Item_foreign_fn
-| Attributes_and_vis 'unsafe' Item_foreign_fn;
+= ForeignItem:Attributes_and_vis 'static' Item_foreign_static
+| ForeignItem:Attributes_and_vis Item_foreign_fn
+| ForeignItem:Attributes_and_vis 'unsafe' Item_foreign_fn;
 
 syntax Item_foreign_static
-= Maybe_mut Identifier ':' Types ';';
+= StaticItem:Maybe_mut Identifier ':' Types ';';
 
 syntax Item_foreign_fn
-= 'fn' Identifier Generic_params Fn_declaration_allow_variadic Maybe_where_clause ';';
+= ForeignFn:'fn' Identifier Generic_params Fn_decl_allow_variadic Maybe_where_clause ';';
+
+syntax Fn_decl_allow_variadic
+= FnDecl:Fn_params_allow_variadic Ret_type;
 
 syntax Fn_params_allow_variadic
 = '(' ')'
@@ -265,12 +270,12 @@ syntax Fn_params_allow_variadic
 | '(' Params ',' '...' ')';
 
 syntax Visibility
-= 'pub'
-| /*empty*/;
+= Public:'pub'
+| Inherited:/*empty*/;
 
 syntax Identifiers_or_self
-= Identifier_or_self
-| Identifier_or_self 'as' Identifier
+= IdentsOrSelf:Identifier_or_self
+| IdentsOrSelf:Identifier_or_self 'as' Identifier
 | Identifiers_or_self ',' Identifier_or_self;
 
 syntax Identifier_or_self
@@ -278,23 +283,22 @@ syntax Identifier_or_self
 | 'self';
 
 syntax Item_type
-= 'type' Identifier Generic_params Maybe_where_clause '=' Type_sum ';';
+= ItemTy:'type' Identifier Generic_params Maybe_where_clause '=' Type_sum ';';
 
 syntax For_sized 
-= 'for' '?' Identifier
-| 'for' Identifier '?'
+= ForSized:'for' '?' Identifier
+| ForSized:'for' Identifier '?'
 | /*empty*/;
 
 syntax Item_trait
-= Maybe_unsafe 'trait' Identifier Generic_params For_sized Maybe_type_param_bounds Maybe_where_clause \
-  '{' Maybe_trait_items '}';
+= ItemTrait:Maybe_unsafe 'trait' Identifier Generic_params For_sized Maybe_type_param_bounds Maybe_where_clause '{' Maybe_trait_items '}';
   
 syntax Maybe_trait_items
 = Trait_items
 | /*empty*/;
 
 syntax Trait_items
-= Trait_item
+= TraitItems:Trait_item
 | Trait_items Trait_item;
 
 syntax Trait_item
@@ -303,84 +307,78 @@ syntax Trait_item
 | Trait_method;
 
 syntax Trait_const
-= Maybe_outer_attributes 'const' Identifier Maybe_type_ascription Maybe_const_defailt ';';
+= ConstTraitItem:Maybe_outer_attributes 'const' Identifier Maybe_type_ascription Maybe_const_defailt ';';
 
 syntax Maybe_const_default
-= '=' Expression
+= ConstDefault:'=' Expression
 | /*empty*/;
 
 syntax Trait_type
-= Maybe_outer_attributes 'type' Type_param ';';
+= TypeTraitItem:Maybe_outer_attributes 'type' Type_param ';';
 
 syntax Maybe_unsafe
-= 'unsafe'
+= Unsafe:'unsafe'
 | /*empty*/;
 
 syntax Trait_method
-= Type_method
-| Method;
+= Required:Type_method
+| Provided:Method;
 
 syntax Type_method
-= Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params \
-  Fn_decl_with_self_allow_anon_params Maybe_where_clause ';'
-| Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params \
-  Fn_decl_with_self_allow_anon_params Maybe_where_clause ';';
+= TypeMethod:Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params Fn_decl_with_self_allow_anon_params Maybe_where_clause ';'
+| TypeMethod:Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params Fn_decl_with_self_allow_anon_params Maybe_where_clause ';';
   
 syntax Method
-= Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params \
-  Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block
-| Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params \
-  Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block;
+= Method:Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block
+| Method:Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block;
 
 syntax Impl_method
-= Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params \
-  Fn_decl_with_self Maybe_where_clause Inner_attributes_and_block
-| Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params \
-  Fn_decl_with_self Maybe_where_clause Inner_attributes_and_block;
+= Method:Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params Fn_decl_with_self Maybe_where_clause Inner_attributes_and_block
+| Method:Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params Fn_decl_with_self Maybe_where_clause Inner_attributes_and_block;
   
 syntax Item_impl
-= Maybe_unsafe 'impl' Generic_params Type_primitive_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
-| Maybe_unsafe 'impl' Generic_params '(' Type ')' Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
-| Maybe_unsafe 'impl' Generic_params Trait_ref 'for' Type_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
-| Maybe_unsafe 'impl' Generic_params '!' Trait_ref 'for' Type_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
-| Maybe_unsafe 'impl' Generic_params Trait_ref 'for' '..' '{' '}'
-| Maybe_unsafe 'impl' Generic_params '!' Trait_ref 'for' '..' '{' '}';
+= ItemImpl:Maybe_unsafe 'impl' Generic_params Type_primitive_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
+| ItemImpl:Maybe_unsafe 'impl' Generic_params '(' Type ')' Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
+| ItemImpl:Maybe_unsafe 'impl' Generic_params Trait_ref 'for' Type_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
+| ItemImplNeg:Maybe_unsafe 'impl' Generic_params '!' Trait_ref 'for' Type_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
+| ItemImplDefault:Maybe_unsafe 'impl' Generic_params Trait_ref 'for' '..' '{' '}'
+| ItemImplDefaultNeg:Maybe_unsafe 'impl' Generic_params '!' Trait_ref 'for' '..' '{' '}';
 
 syntax Maybe_impl_items
 = Impl_items
 | /*empty*/;
 
 syntax Impl_items
-= Impl_item
+= ImplItems:Impl_item
 | Impl_item Impl_items;
 
 syntax Impl_item
 = Impl_method
-| Attributes_and_vis Item_macro
+| ImplMacroItem:Attributes_and_vis Item_macro
 | Impl_const
 | Impl_type;
 
 syntax Impl_const
-= Attributes_and_vis Item_const;
+= ImplConst:Attributes_and_vis Item_const;
 
 syntax Impl_type
-= Attributes_and_vis 'type' Identifier Generic_params '=' Type_sum ';';
+= ImplType:Attributes_and_vis 'type' Identifier Generic_params '=' Type_sum ';';
 
 syntax Item_fn
-= 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block;
+= ItemFn:'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block;
 
 syntax Item_unsafe_fn
-= 'unsafe' 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block
-| 'unsafe' 'extern' Maybe_abi 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block;
+= ItemUnsafeFn:'unsafe' 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block
+| ItemUnsafeFn:'unsafe' 'extern' Maybe_abi 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block;
 
 syntax Fn_decl
-= Fn_params Ret_type;
+= FnDecl:Fn_params Ret_type;
 
 syntax Fn_decl_with_self
-= Fn_params_with_self Ret_type;
+= FnDecl:Fn_params_with_self Ret_type;
 
 syntax Fn_decl_with_self_allow_anon_params
-= Fn_anon_params_with_self Ret_type;
+= FnDecl:Fn_anon_params_with_self Ret_type;
 
 syntax Fn_params
 = '(' Maybe_params ')';
@@ -390,16 +388,16 @@ syntax Fn_anon_params
 | '('  ')';
 
 syntax Fn_params_with_self
-= '(' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
-| '(' '&' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
-| '(' '&'  Lifetime Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
-| '(' Maybe_params ')';
+= SelfValue:'(' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
+| SelfRegion:'(' '&' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
+| SelfRegion:'(' '&'  Lifetime Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
+| SelfStatic:'(' Maybe_params ')';
 
 syntax Fn_anon_params_with_self
-= '(' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
-| '(' '&' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
-| '(' '&'  Lifetime Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
-| '(' Maybe_anon_params ')';
+= SelfValue:'(' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
+| SelfRegion:'(' '&' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
+| SelfRegion:'(' '&'  Lifetime Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
+| SelfStatic:'(' Maybe_anon_params ')';
 
 syntax Maybe_params
 = Params
@@ -407,18 +405,18 @@ syntax Maybe_params
 | /*empty*/;
 
 syntax Params
-= Param
+= Args:Param
 | Params ',' Param;
 
 syntax Param
-= Pattern ':' Type_sum;
+= Arg:Pattern ':' Type_sum;
 
 syntax Inferrable_params
-= Inferrable_param
+= InferrableParams:Inferrable_param
 | Inferrable_params ',' Inferrable_param;
 
 syntax Inferrable_param
-= Pattern Maybe_type_ascription;
+= InferrableParam:Pattern Maybe_type_ascription;
 
 syntax Maybe_unboxed_closure_kind
 = /*empty*/
@@ -443,45 +441,46 @@ syntax Maybe_anon_params
 | /*empty*/;
 
 syntax Anon_params
-= Anon_param
+= Args:Anon_param
 | Anon_params ',' Anon_param;
 
 syntax Anon_param
-= Named_arg ':' Type
+= Arg:Named_arg ':' Type
 | Type;
 
 syntax Anon_params_allow_variadic_tail
 = ',' '...'
-| ',' Anon_param Anon_params_allow_variadic_tail;
+| Args:',' Anon_param Anon_params_allow_variadic_tail
+| /*empty*/;
 
 syntax Named_arg
 = Identifier
-| '_'
+| PatWild:'_'
 | '&' Identifier
-| '&' '_'
+| PatWild:'&' '_'
 | '&&' Identifier
-| '&&' '_'
+| PatWild:'&&' '_'
 | 'mut' Identifier;
 
 syntax Ret_type
 = '-\>' '!'
-| '-\>' Type
+| ret_ty:'-\>' Type
 | Identifier /*empty*/
 ;
 
 syntax Generic_params
-= '\<' Lifetime '\>'
-| '\<' Lifetime ',' '\>'
-| '\<' Lifetime '\>\>'
-| '\<' Lifetime ',' '\>\>'
-| '\<' Lifetime ',' Type_params '\>'
-| '\<' Lifetime ',' Type_params ',' '\>'
-| '\<' Lifetime ',' Type_params '\>\>'
-| '\<' Lifetime ',' Type_params ',' '\>\>'
-| '\<' Type_params '\>'
-| '\<' Type_params ',' '\>'
-| '\<' Type_params '\>\>'
-| '\<' Type_params ',' '\>\>'
+= Generics:'\<' Lifetime '\>'
+| Generics:'\<' Lifetime ',' '\>'
+| Generics:'\<' Lifetime '\>\>'
+| Generics:'\<' Lifetime ',' '\>\>'
+| Generics:'\<' Lifetime ',' Type_params '\>'
+| Generics:'\<' Lifetime ',' Type_params ',' '\>'
+| Generics:'\<' Lifetime ',' Type_params '\>\>'
+| Generics:'\<' Lifetime ',' Type_params ',' '\>\>'
+| Generics:'\<' Type_params '\>'
+| Generics:'\<' Type_params ',' '\>'
+| Generics:'\<' Type_params '\>\>'
+| Generics:'\<' Type_params ',' '\>\>'
 | /*empty*/;
 
 syntax Maybe_where_clause
@@ -489,16 +488,16 @@ syntax Maybe_where_clause
 | Where_clause;
 
 syntax Where_clause
-= 'where' Where_predicates
-| 'where' Where_predicates ',';
+= WhereClause:'where' Where_predicates
+| WhereClause:'where' Where_predicates ',';
 
 syntax Where_predicates
-= Where_predicate
+= WherePredicates:Where_predicate
 | Where_predicates ',' Where_predicate;
 
 syntax Where_predicate
-= Maybe_for_lifetimes LifeTime ':' Bounds
-| Maybe_for_lifetimes Type ':' Type_param_bounds;
+= WherePredicate:Maybe_for_lifetimes LifeTime ':' Bounds
+| WherePredicate:Maybe_for_lifetimes Type ':' Type_param_bounds;
 
 syntax Maybe_for_lifetimes
 = 'for' '\<' LifeTime '\>'
@@ -506,20 +505,20 @@ syntax Maybe_for_lifetimes
 ;
 
 syntax Type_params
-= Type_param
+= TyParams:Type_param
 | Type_params ',' Type_param;
 
 syntax Path_no_types_allowed
-= Identifier
-| '::' Identifier
-| 'self'
-| '::' 'self'
+= ViewPath:Identifier
+| ViewPath:'::' Identifier
+| ViewPath:'self'
+| ViewPath:'::' 'self'
 | Path_no_types_allowed '::' Identifier;
 
 syntax Path_generic_args_without_colons
-= Identifier
-| Identifier Generic_args
-| Identifier '(' Maybe_type_sums ')' Ret_type
+= components:Identifier
+| components:Identifier Generic_args
+| components:Identifier '(' Maybe_type_sums ')' Ret_type
 | Path_generic_args_without_colons '::' Identifier
 | Path_generic_args_without_colons '::' Identifier Generic_args
 | Path_generic_args_without_colons '::' Identifier '(' Maybe_type_sums ')' Ret_type
@@ -834,16 +833,16 @@ syntax Maybe_expression
 | /*empty*/;
 
 syntax Expressions
-= Expression
+= exprs:Expression
 | Expressions ',' Expression;
 
 syntax Path_expression
 = Path_generic_args_with_colons
 | '::' Path_generic_args_with_colons
-| 'self' '::' Path_generic_args_with_colons;
+| SelfPath:'self' '::' Path_generic_args_with_colons;
 
 syntax Path_generic_args_with_colons
-= Identifier
+= Components:Identifier
 | Path_generic_args_with_colons '::' Identifier
 | Path_generic_args_with_colons '::' Generic_args;
 
@@ -1029,8 +1028,8 @@ syntax Nonparen_expression
 | Nonblock_prefix_expression;
 
 syntax Expression_nostruct
-= Literal
-| Path_expression
+= ExprLit:Literal
+| ExprPath:Path_expression
 | 'self'
 | Macro_expression
 | Expression_nostruct '.' Path_generic_args_with_colons
@@ -1108,16 +1107,11 @@ syntax Nonblock_prefix_expression
 | Proc_expression;
 
 syntax Expression_qualified_path
-= '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\ 
-  Maybe_qpath_params
-| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
-  Maybe_as_trait_ref '\>' '::' Identifier
-| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\ 
-  Generic_args Maybe_as_trait_ref '\>' '::' Identifier
-| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
-  Maybe_as_trait_ref '\>' Identifier Generic_args
-| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
-  Generic_args Maybe_as_trait_ref '\>' '::' Identifier Generic_args ;
+= '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier Maybe_qpath_params
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier Maybe_as_trait_ref '\>' '::' Identifier
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier Generic_args Maybe_as_trait_ref '\>' '::' Identifier
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier Maybe_as_trait_ref '\>' Identifier Generic_args
+| '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier Generic_args Maybe_as_trait_ref '\>' '::' Identifier Generic_args ;
 
 syntax Maybe_qpath_params
 = '::' Generic_args
@@ -1253,26 +1247,26 @@ syntax Let
 /* #### #### Macros and misc. rules #### ####*/
 
 syntax Literal
-= Literal_byte
-| Literal_char
-| Literal_integer
-| Literal_float
-| 'true'
-| 'false'
-| String;
+= LitByte:Literal_byte
+| LitChar:Literal_char
+| LitInteger:Literal_integer
+| LitFloat:Literal_float
+| LitBool:'true'
+| LitBool:'false'
+> String;
 
 syntax String
-= Literal_string
-| Literal_string_raw
-| Literal_byte_string
-| Literal_byte_string_raw;
+= LitStr:Literal_string
+| LitStr:Literal_string_raw
+| LitByteStr:Literal_byte_string
+| LitByteStr:Literal_byte_string_raw;
 
 syntax Maybe_identifier
 = /*empty*/
 | Identifier;
 
 syntax Identifier
-= Ident;
+= ident:Ident;
 
 syntax Unpaired_token
 = '\<\<'                        
@@ -1374,12 +1368,12 @@ syntax Unpaired_token
 | '%';
 
 syntax Token_trees
-= /*empty*/
+= TokenTrees:/*empty*/
 | Token_trees Token_tree;
 
 syntax Token_tree
 = Delimited_token_trees
-| Unpaired_token;
+| TTTok:Unpaired_token;
 
 syntax Delimited_token_trees
 = Parens_delimited_token_trees
@@ -1387,10 +1381,10 @@ syntax Delimited_token_trees
 | Brackets_delimited_token_trees;
 
 syntax Parens_delimited_token_trees
-= '(' Token_Trees ')';
+= TTTok:'(' Token_Trees ')';
 
 syntax Braces_delimited_token_trees
-= '{' Token_trees '}';
+= TTTok:'{' Token_trees '}';
 
 syntax Brackets_delimited_token_trees
-= '[' Token_trees ']';
+= TTTok:'[' Token_trees ']';
