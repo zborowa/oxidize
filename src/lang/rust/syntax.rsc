@@ -5,8 +5,6 @@ module lang::rust::\syntax
 import Prelude;
 import vis::ParseTree;
 
-lexical Ident = [a-zA-Z_][a-zA-Z0-9_]* !>> [a-zA-Z0-9_];
-
 layout Whitespace = [\ \t\r\n]* !>> [\ \t\r\n];
 lexical Inner_doc_comment = "///[^\n]*\n" | "/**[^*][^*]**/";
 lexical Linecomment = "//[^\n]*\n" | "////[^\n]*\n";
@@ -837,7 +835,7 @@ syntax Expressions
 | Expressions ',' Expression;
 
 syntax Path_expression
-= Path_generic_args_with_colons
+= pgawc:Path_generic_args_with_colons
 | '::' Path_generic_args_with_colons
 | SelfPath:'self' '::' Path_generic_args_with_colons;
 
@@ -1265,8 +1263,8 @@ syntax Maybe_identifier
 = /*empty*/
 | Identifier;
 
-syntax Identifier
-= ident:Ident;
+lexical Identifier
+= ident:[a-zA-Z_][a-zA-Z0-9_]*;
 
 syntax Unpaired_token
 = '\<\<'                        
@@ -1301,7 +1299,7 @@ syntax Unpaired_token
 | Literal_string_raw                
 | Literal_byte_string               
 | Literal_byte_string_raw           
-| Ident                      
+| Identifier                      
 | '_'                 
 | '\''                   
 | 'self'                       
