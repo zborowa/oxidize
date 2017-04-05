@@ -2,9 +2,52 @@
 
 module lang::rust::\syntax
 
-layout Whitespace = [\ \t\r\n]* !>> [\ \t\r\n];
+import Prelude;
+import vis::ParseTree;
 
-lexical Ident = [a-zA-Z][a-zA-Z0-9]* !>> [a-zA-Z0-9];
+lexical Ident = [a-zA-Z_][a-zA-Z0-9_]* !>> [a-zA-Z0-9_];
+
+layout Whitespace = [\ \t\r\n]* !>> [\ \t\r\n];
+lexical Inner_doc_comment = "///[^\n]*\n" | "/**[^*][^*]**/";
+lexical Linecomment = "//[^\n]*\n" | "////[^\n]*\n";
+lexical Outer_doc_comment = "//![^\n]*\n" | "/*![^*][^*]*/";
+lexical Blockcomment = "/**/";
+
+lexical Literal_byte
+= "b\'\\[nrt\\\'\\u0220]\'" 
+| "b\'\\u00[0-9a-fA-F]{2}\'" 
+| "b\'\\u[0-9a-fA-F]{4}\'" 
+| "b\'\\U[0-9a-fA-F]{8}\'" 
+| "b\'.\'";
+
+lexical Literal_char 
+= "\'\\[nrt\\\'\u0220]\'" 
+| "\'\\u00[0-9a-fA-F]{2}\'" 
+| "\'.\'" 
+| "\'[\\u0080-\\u00ff]{2,4}\'";
+
+lexical Literal_integer 
+= "0x[0-9a-fA-F_]+" 
+| "0o[0-8_]+" 
+| "0b[01_]+" 
+| "[0-9][0-9_]*" 
+| "[0-9][0-9_]*.(.|[a-zA-Z])";
+
+lexical Literal_float 
+= "[0-9][0-9_]*.[0-9_]*([eE][-+]?[0-9_]+)?" 
+| "[0-9][0-9_]*(.[0-9_]*)?[eE][-+]?[0-9_]+";
+
+lexical Literal_string
+= "\"[.\n]*\"";
+
+lexical Literal_string_raw 
+= "r\"[.\n]*\"";
+
+lexical Literal_byte_string 
+= "b\"[.\n]*\"";
+
+lexical Literal_byte_string_raw 
+= "br\"[].\n*\"";
 
 lexical Hash = '#';
 lexical Shebang = Hash '!' '[';
@@ -12,99 +55,99 @@ lexical Shebang_line = Hash '!' '^[\n]*\n';
 
 /* #### #### Items and attributes #### #### */
 
-lexical Crate
+syntax Crate
 = Maybe_shebang Inner_attributes Maybe_mod_items
 | Maybe_shebang Maybe_mod_items;
 
-lexical Maybe_shebang
+syntax Maybe_shebang
 = Shebang_line
 | /*empty*/;
 
-lexical Maybe_inner_attributes
+syntax Maybe_inner_attributes
 = Inner_attributes
 | /*empty*/;
 
-lexical Inner_attributes
+syntax Inner_attributes
 = Inner_attribute
 | Inner_attributes Inner_attribute;
 
-lexical Inner_attribute
+syntax Inner_attribute
 = Shebang '[' Meta_item ']'
 | Inner_doc_comment;
 
-lexical Maybe_outer_attributes
+syntax Maybe_outer_attributes
 = Outer_attributes
 | /*empty*/;
 
-lexical Outer_attributes
+syntax Outer_attributes
 = Outer_attributes
-| Outers_attributes Outer_attribute;
+| Outer_attributes Outer_attribute;
 
-lexical Outer_attribute
+syntax Outer_attribute
 = '#' '[' Meta_item ']'
-| Outer_document_comment;
+| Outer_doc_comment;
 
-lexical Meta_item
+syntax Meta_item
 = Identifier
 | Identifier '=' Literal
 | Identifier '(' Meta_sequence ')'
 | Identifier '(' Meta_sequence ',' ')';
 
-lexical Meta_sequence 
+syntax Meta_sequence 
 = /*empty*/
 | Meta_item
 | Meta_sequence ',' Meta_item;
 
-lexical Maybe_mod_items
+syntax Maybe_mod_items
 = Mod_items
 | /*empty*/;
 
-lexical Mod_items
+syntax Mod_items
 = Mod_item
 | Mod_items Mod_item;
 
-lexical Attributes_and_vis
+syntax Attributes_and_vis
 = Maybe_outer_attributes Visibility;
 
-lexical Mod_item
+syntax Mod_item
 = Attributes_and_vis Item;
 
-lexical Item 
+syntax Item 
 = Statement_item 
 | Item_macro;
 
-lexical Statement_item 
+syntax Statement_item 
 = Item_static
 | Item_const
 | Item_type
 | Block_item
 | View_item;
 
-lexical Item_static
+syntax Item_static
 = 'static' Identifier ':' Type '=' Expression ';'
 | 'static' 'mut' Identifier ':' Type '=' Expression ';';
 
-lexical Item_const
+syntax Item_const
 = 'const' Identifier ':' Type '=' Expression ';';
 
-lexical Item_macro
+syntax Item_macro
 = Path_expression '!' Maybe_identifier Parens_delimited_token_trees ';'
 | Path_expression '!' Maybe_identifier Braces_delimited_token_trees
 | Path_expression '!' Maybe_identifier Brackets_delimited_token_trees ';';
 
-lexical View_item
+syntax View_item
 = Use_item
 | Extern_fn_item
 | 'extern' 'crate' Identifier ';'
 | 'extern' 'crate' Identifier 'as' Identifier ';';
 
-lexical Extern_fn_item 
+syntax Extern_fn_item 
 = 'extern' Maybe_abi Item_fn;
 
-lexical Use_item
+syntax Use_item
 = 'use' View_path ';';
 
-lexical View_path
+syntax View_path
 = Path_no_types_allowed
 | Path_no_types_allowed '::' '{' '}'
 | '::' '{' '}'
@@ -118,7 +161,7 @@ lexical View_path
 | '{' Identifiers_or_self ',' '}'
 | Path_no_types_allowed 'as' Identifier;
 
-lexical Block_item
+syntax Block_item
 = Item_fn
 | Item_unsafe_fn
 | Item_mod
@@ -128,174 +171,174 @@ lexical Block_item
 | Item_trait
 | Item_impl;
 
-lexical Maybe_type_ascription
+syntax Maybe_type_ascription
 = ':' Type_sum
 | /*empty*/;
 
-lexical Maybe_init_expression
+syntax Maybe_init_expression
 = '=' Expression
 | /*empty*/;
 
-lexical Item_struct
+syntax Item_struct
 = 'struct' Identifier Generic_params Maybe_where_clause Struct_decl_args
 | 'struct' Identifier Generic_params Struct_tuple_args Maybe_where_clause ';'
 | 'struct' Identifier Generic_params Maybe_where_clause ';';
 
-lexical Structure_declaration_args
+syntax Structure_declaration_args
 = '{' Structure_declaration_fields '}'
 | '{' Structure_declaration_fields ',' '}';
 
-lexical Structure_typle_args
+syntax Structure_typle_args
 = '(' Structure_tuple_fields ')'
 | '(' Structure_tuple_fields ',' ')';
 
-lexical Structure_declaration_fields
+syntax Structure_declaration_fields
 = Structure_declaration_field
 | Structure_declaration_fields ',' Structure_declaration_field
 | /*empty*/;
 
-lexical Structure_decl_field
+syntax Structure_decl_field
 = Attributes_and_vis Identifier ':' Type_sum;
 
-lexical Structure_tuple_fields
+syntax Structure_tuple_fields
 = Structure_tuple_field
 | Structure_tuple_fields ',' Structure_tuple_field;
 
-lexical Structure_tuple_field
+syntax Structure_tuple_field
 = Attributes_and_vis Type_sum;
 
-lexical Item_enum
+syntax Item_enum
 = 'enum' Identifier Generic_params Maybe_where_clause '{' Enum_defs '}'
 | 'enum' Identifier Generic_params Maybe_where_clause '{' Enum_defs ',' '}';
 
-lexical Enum_defs 
+syntax Enum_defs 
 = Enum_def
 | Enum_defs ',' Enum_def
 | /*empty*/;
 
-lexical Enum_def
+syntax Enum_def
 = Attributes_and_vis Identifier Enum_args;
 
-lexical Enum_args
+syntax Enum_args
 = '{' Structure_decl_fields '}'
 | '{' Structure_decl_fields ',' '}'
 | '{' Maybe_type_sum '}'
 | '=' Expression
 | /*empty*/;
 
-lexical Item_mod
+syntax Item_mod
 = 'mod' Identifier ';'
 | 'mod' Identifier '{' Maybe_mod_items '}'
 | 'mod' Identifier '{' Inner_attrs Maybe_mod_items '}';
 
-lexical Item_foreign_mod
+syntax Item_foreign_mod
 = 'extern' Maybe_abi '{' Maybe_foreign_items '}'
 | 'extern' Maybe_abi '{' Inner_attrs Maybe_foreign_items '}';
 
-lexical Maybe_abi
+syntax Maybe_abi
 = String
 | /*empty*/;
 
-lexical Maybe_foreign_items
+syntax Maybe_foreign_items
 = Foreign_items
 | /*empty*/;
 
-lexical Foreign_items
+syntax Foreign_items
 = Foreign_item
 | Foreign_items Foreign_item;
 
-lexical Foreign_item
+syntax Foreign_item
 = Attributes_and_vis 'static' Item_foreign_static
 | Attributes_and_vis Item_foreign_fn
 | Attributes_and_vis 'unsafe' Item_foreign_fn;
 
-lexical Item_foreign_static
+syntax Item_foreign_static
 = Maybe_mut Identifier ':' Types ';';
 
-lexical Item_foreign_fn
+syntax Item_foreign_fn
 = 'fn' Identifier Generic_params Fn_declaration_allow_variadic Maybe_where_clause ';';
 
-lexical Fn_params_allow_variadic
+syntax Fn_params_allow_variadic
 = '(' ')'
 | '(' Params ')'
 | '(' Params ',' ')'
 | '(' Params ',' '...' ')';
 
-lexical Visibility
+syntax Visibility
 = 'pub'
 | /*empty*/;
 
-lexical Identifiers_or_self
+syntax Identifiers_or_self
 = Identifier_or_self
 | Identifier_or_self 'as' Identifier
 | Identifiers_or_self ',' Identifier_or_self;
 
-lexical Identifier_or_self
+syntax Identifier_or_self
 = Identifier
 | 'self';
 
-lexical Item_type
+syntax Item_type
 = 'type' Identifier Generic_params Maybe_where_clause '=' Type_sum ';';
 
-lexical For_sized 
+syntax For_sized 
 = 'for' '?' Identifier
 | 'for' Identifier '?'
 | /*empty*/;
 
-lexical Item_trait
+syntax Item_trait
 = Maybe_unsafe 'trait' Identifier Generic_params For_sized Maybe_type_param_bounds Maybe_where_clause \
   '{' Maybe_trait_items '}';
   
-lexical Maybe_trait_items
+syntax Maybe_trait_items
 = Trait_items
 | /*empty*/;
 
-lexical Trait_items
+syntax Trait_items
 = Trait_item
 | Trait_items Trait_item;
 
-lexical Trait_item
+syntax Trait_item
 = Trait_const
 | Trait_type
 | Trait_method;
 
-lexical Trait_const
+syntax Trait_const
 = Maybe_outer_attributes 'const' Identifier Maybe_type_ascription Maybe_const_defailt ';';
 
-lexical Maybe_const_default
+syntax Maybe_const_default
 = '=' Expression
 | /*empty*/;
 
-lexical Trait_type
+syntax Trait_type
 = Maybe_outer_attributes 'type' Type_param ';';
 
-lexical Maybe_unsafe
+syntax Maybe_unsafe
 = 'unsafe'
 | /*empty*/;
 
-lexical Trait_method
+syntax Trait_method
 = Type_method
 | Method;
 
-lexical Type_method
+syntax Type_method
 = Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params \
   Fn_decl_with_self_allow_anon_params Maybe_where_clause ';'
 | Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params \
   Fn_decl_with_self_allow_anon_params Maybe_where_clause ';';
   
-lexical Method
+syntax Method
 = Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params \
   Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block
 | Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params \
   Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block;
 
-lexical Impl_method
+syntax Impl_method
 = Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params \
   Fn_decl_with_self Maybe_where_clause Inner_attributes_and_block
 | Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params \
   Fn_decl_with_self Maybe_where_clause Inner_attributes_and_block;
   
-lexical Item_impl
+syntax Item_impl
 = Maybe_unsafe 'impl' Generic_params Type_primitive_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
 | Maybe_unsafe 'impl' Generic_params '(' Type ')' Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
 | Maybe_unsafe 'impl' Generic_params Trait_ref 'for' Type_sum Maybe_where_clause '{' Maybe_inner_attributes Maybe_impl_items '}'
@@ -303,115 +346,115 @@ lexical Item_impl
 | Maybe_unsafe 'impl' Generic_params Trait_ref 'for' '..' '{' '}'
 | Maybe_unsafe 'impl' Generic_params '!' Trait_ref 'for' '..' '{' '}';
 
-lexical Maybe_impl_items
+syntax Maybe_impl_items
 = Impl_items
 | /*empty*/;
 
-lexical Impl_items
+syntax Impl_items
 = Impl_item
 | Impl_item Impl_items;
 
-lexical Impl_item
+syntax Impl_item
 = Impl_method
 | Attributes_and_vis Item_macro
 | Impl_const
 | Impl_type;
 
-lexical Impl_const
+syntax Impl_const
 = Attributes_and_vis Item_const;
 
-lexical Impl_type
+syntax Impl_type
 = Attributes_and_vis 'type' Identifier Generic_params '=' Type_sum ';';
 
-lexical Item_fn
+syntax Item_fn
 = 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block;
 
-lexical Item_unsafe_fn
+syntax Item_unsafe_fn
 = 'unsafe' 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block
 | 'unsafe' 'extern' Maybe_abi 'fn' Identifier Generic_params Fn_decl Maybe_where_clause Inner_attributes_and_block;
 
-lexical Fn_decl
+syntax Fn_decl
 = Fn_params Ret_type;
 
-lexical Fn_decl_with_self
+syntax Fn_decl_with_self
 = Fn_params_with_self Ret_type;
 
-lexical Fn_decl_with_self_allow_anon_params
+syntax Fn_decl_with_self_allow_anon_params
 = Fn_anon_params_with_self Ret_type;
 
-lexical Fn_params
+syntax Fn_params
 = '(' Maybe_params ')';
 
-lexical Fn_anon_params
+syntax Fn_anon_params
 = '(' Anon_param Anon_params_allow_variadic_tail ')'
 | '('  ')';
 
-lexical Fn_params_with_self
+syntax Fn_params_with_self
 = '(' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
 | '(' '&' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
 | '(' '&'  Lifetime Maybe_mut 'self' Maybe_type_ascription Maybe_comma_params ')'
 | '(' Maybe_params ')';
 
-lexical Fn_anon_params_with_self
+syntax Fn_anon_params_with_self
 = '(' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
 | '(' '&' Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
 | '(' '&'  Lifetime Maybe_mut 'self' Maybe_type_ascription Maybe_comma_anon_params ')'
 | '(' Maybe_anon_params ')';
 
-lexical Maybe_params
+syntax Maybe_params
 = Params
 | Params ','
 | /*empty*/;
 
-lexical Params
+syntax Params
 = Param
 | Params ',' Param;
 
-lexical Param
+syntax Param
 = Pat ':' Type_sum;
 
-lexical Inferrable_params
+syntax Inferrable_params
 = Inferrable_param
 | Inferrable_params ',' Inferrable_param;
 
-lexical Inferrable_param
+syntax Inferrable_param
 = Pattern Maybe_type_ascription;
 
-lexical Maybe_unboxed_closure_kind
+syntax Maybe_unboxed_closure_kind
 = /*empty*/
 | ':'
 | '&' Maybe_mut ':';
 
-lexical Maybe_comma_params
+syntax Maybe_comma_params
 = ','
 | ',' Params
 | ',' Params ','
 | /*empty*/;
 
-lexical Maybe_comma_anon_params
+syntax Maybe_comma_anon_params
 = ','
 | ',' Anon_params
 | ',' Anon_params ','
 | /*empty*/;
 
-lexical Maybe_anon_params
+syntax Maybe_anon_params
 = Anon_params
 | Anon_params ','
 | /*empty*/;
 
-lexical Anon_params
+syntax Anon_params
 = Anon_param
 | Anon_params ',' Anon_param;
 
-lexical Anon_param
+syntax Anon_param
 = Named_arg ':' Type
 | Type;
 
-lexical Anon_params_allow_variadic_tail
+syntax Anon_params_allow_variadic_tail
 = ',' '...'
 | ',' Anon_param Anon_params_allow_variadic_tail;
 
-lexical Named_arg
+syntax Named_arg
 = Identifier
 | '_'
 | '&' Identifier
@@ -420,13 +463,13 @@ lexical Named_arg
 | '&&' '_'
 | 'mut' Identifier;
 
-lexical Ret_type
+syntax Ret_type
 = '-\>' '!'
 | '-\>' Type
 | Identifier /*empty*/
 ;
 
-lexical Generic_params
+syntax Generic_params
 = '\<' Lifetime '\>'
 | '\<' Lifetime ',' '\>'
 | '\<' Lifetime '\>\>'
@@ -441,39 +484,39 @@ lexical Generic_params
 | '\<' Type_params ',' '\>\>'
 | /*empty*/;
 
-lexical Maybe_where_clause
+syntax Maybe_where_clause
 = /*empty*/
 | Where_clause;
 
-lexical Where_clause
+syntax Where_clause
 = 'where' Where_predicates
 | 'where' Where_predicates ',';
 
-lexical Where_predicates
+syntax Where_predicates
 = Where_predicate
 | Where_predicates ',' Where_predicate;
 
-lexical Where_predicate
+syntax Where_predicate
 = Maybe_for_lifetimes LifeTime ':' Bounds
 | Maybe_for_lifetimes Type ':' Type_param_bounds;
 
-lexical Maybe_for_lifetimes
+syntax Maybe_for_lifetimes
 = 'for' '\<' LifeTime '\>'
 | 'for' /*empty*/
 ;
 
-lexical Type_params
+syntax Type_params
 = Type_param
 | Type_params ',' Type_param;
 
-lexical Path_no_types_allowed
+syntax Path_no_types_allowed
 = Identifier
 | '::' Identifier
 | 'self'
 | '::' 'self'
 | Path_no_types_allowed '::' Identifier;
 
-lexical Path_generic_args_without_colons
+syntax Path_generic_args_without_colons
 = Identifier
 | Identifier Generic_args
 | Identifier '(' Maybe_type_sums ')' Ret_type
@@ -482,7 +525,7 @@ lexical Path_generic_args_without_colons
 | Path_generic_args_without_colons '::' Identifier '(' Maybe_type_sums ')' Ret_type
 ;
 
-lexical Generic_args
+syntax Generic_args
 = '\<' Generic_values '\>'
 | '\<' Generic_values '\>\>'
 | '\<' Generic_values '\>='
@@ -492,10 +535,10 @@ lexical Generic_args
 | '\<\<' Type_qualified_path_and_generic_values '\>='
 | '\<\<' Type_qualified_path_and_generic_values '\>\>=';
 
-lexical Generic_values
+syntax Generic_values
 = Maybe_lifetimes Maybe_type_sums_and_or_bindings;
 
-lexical Maybe_type_sums_and_or_bindings
+syntax Maybe_type_sums_and_or_bindings
 = Type_sums
 | Type_sums ','
 | Type_sums ',' Bindings
@@ -503,13 +546,13 @@ lexical Maybe_type_sums_and_or_bindings
 | Bindings ','
 | /*empty*/;
 
-lexical Bindings
+syntax Bindings
 = ',' Bindings
 | /*empty*/;
 
 /* #### #### Patterns #### #### */
 
-lexical Pattern
+syntax Pattern
 = '_'
 | '&' Pattern
 | '&' 'mut' Pattern
@@ -531,21 +574,21 @@ lexical Pattern
 | '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier
 | '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier Maybe_as_trait_ref '\>' '::' Identifier;
 
-lexical Patterns_or
+syntax Patterns_or
 = Pattern
 | Patterns_or '|' Pattern;
 
-lexical Binding_mode
+syntax Binding_mode
 = 'ref'
 | 'ref' 'mut'
 | 'mut';
 
-lexical Literal_or_path
+syntax Literal_or_path
 = Path_expression
 | Literal
 | '-' Literal;
 
-lexical Pattern_field
+syntax Pattern_field
 = Identifier
 | Binding_mode Identifier
 | 'box' Identifier
@@ -553,21 +596,21 @@ lexical Pattern_field
 | Identifier ':' Pattern
 | Binding_mode Identifier ':' Pattern;
 
-lexical Pattern_fields
+syntax Pattern_fields
 = Pattern_field
 | Pattern_fields ',' Pattern_field;
 
-lexical Pattern_structure
+syntax Pattern_structure
 = Patterns_fields
 | Pattern_fields ','
 | Pattern_fields ',' '..'
 | '..';
 
-lexical Pattern_tuple
+syntax Pattern_tuple
 = Pattern
 | Patterns_tuple ',' Pattern;
 
-lexical Pattern_vector
+syntax Pattern_vector
 = Pattern_vector_elts
 | Pattern_vector_elts ','
 | Pattern_vector_elts '..'
@@ -581,13 +624,13 @@ lexical Pattern_vector
 | '..'
 | /*empty*/;
 
-lexical Pattern_vector_elts
+syntax Pattern_vector_elts
 = Pattern
 | Pattern_vector_elts ',' Pattern;
 
 /* #### #### Types #### #### */
 
-lexical Type 
+syntax Type 
 = Type_primitive
 | Type_closure
 | '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier
@@ -596,7 +639,7 @@ lexical Type
 | '(' Type_sums ',' ')'
 | '(' ')';
 
-lexical Type_primitive
+syntax Type_primitive
 = Path_generic_args_without_colons
 | '::' Path_Generic_args_without_colons
 | 'self' '::' Path_generic_args_without_colons
@@ -618,159 +661,159 @@ lexical Type_primitive
 | For_in_type
 ;
 
-lexical Type_bare_fn 
+syntax Type_bare_fn 
 = 'fn' Type_fn_decl
 | 'unsafe' 'fn' Type_fn_decl
 | 'extern' Maybe_abi 'fn' Type_fn_decl
 | 'unsafe' 'extern' Maybe_abi 'fn' Type_fn_decl;
 
-lexical Type_fn_decl
+syntax Type_fn_decl
 = Generic_params Fn_anon_params Ret_type;
 
-lexical Type_closure
+syntax Type_closure
 = 'unsafe' '|' Anon_params '|' Maybe_bounds Ret_type
 | '|' Anon_params '|' Maybe_bounds Ret_type
 | 'unsafe' '||' Maybe_bounds Ret_type
 | '||' Maybe_bounds Ret_type;
 
-lexical Type_proc 
+syntax Type_proc 
 = 'proc' Generic_params Fn_params Maybe_bounds Ret_type;
 
-lexical For_in_type
+syntax For_in_type
 = 'for' '\<' Maybe_lifetime '\>' For_in_type_suffix;
 
-lexical For_in_type_suffix
+syntax For_in_type_suffix
 = Type_proc
 | Type_bare_fn
 | Trait_ref
 | Type_closure;
 
-lexical Maybe_mut
+syntax Maybe_mut
 = 'mut'
 | 'mut' /*empty*/;
 
-lexical Maybe_mut_or_const
+syntax Maybe_mut_or_const
 = 'mut'
 | 'const' 
 | /*empty*/;
 
-lexical Type_qualified_path_and_generic_values
+syntax Type_qualified_path_and_generic_values
 = Type_qualified_path Maybe_bindings
 | Type_qualified_path ',' Type_sums Maybe_bindings;
 
-lexical Type_qualified_path
+syntax Type_qualified_path
 = Type_sum 'as' Trait_ref '\>' '::' Identifier
 | Type_sum 'as' Trait_ref '\>' '::' Identifier '+' Type_param_bounds;
 
-lexical Maybe_type_sums
+syntax Maybe_type_sums
 = Type_sums
 | Type_sums ','
 | /*empty*/;
 
-lexical Type_sums
+syntax Type_sums
 = Type_sum
 | Type_sums ',' Type_sum;
 
-lexical Type_sum
+syntax Type_sum
 = Type
 | Type '+' Type_param_bounds;
 
-lexical Type_primitive_sum
+syntax Type_primitive_sum
 = Type_primitive
 | Type_primitive '+' Type_param_bounds;
 
-lexical Maybe_type_param_bounds
+syntax Maybe_type_param_bounds
 = ':' Type_param_bounds
 | /*empty*/;
 
-lexical Type_param_bounds
+syntax Type_param_bounds
 = Bounds_sequence
 | /*empty*/;
 
-lexical Bounds_sequence
+syntax Bounds_sequence
 = Poly_bound
 | Bound_sequence '+' Poly_bound;
 
-lexical Poly_bound
+syntax Poly_bound
 = 'for' '\<' Maybe_lifetime '\>' Bound
 | Bound
 | '?' Bound;
 
-lexical Bindings
+syntax Bindings
 = Binding
 | Bindings ',' Binding;
 
-lexical Binding
+syntax Binding
 = Identifier '=' Type;
 
-lexical Type_param
+syntax Type_param
 = Identifier Maybe_type_param_bounds Maybe_type_default
 | Identifier '?' Identifier Maybe_type_param_bounds Maybe_type_default;
 
-lexical Maybe_bounds
+syntax Maybe_bounds
 = ':' Bounds
 | /*empty*/;
 
-lexical Bounds
+syntax Bounds
 = Bound
 | Bounds '+' Bound;
 
-lexical Bound
+syntax Bound
 = Lifetime
 | Trait_ref;
 
-lexical Maybe_ltbounds
+syntax Maybe_ltbounds
 = ':' Ltbounds
 | /*empty*/;
 
-lexical Ltbounds
+syntax Ltbounds
 = Lifetime
 | LtBounds '+' Lifetime;
 
-lexical Maybe_type_default
+syntax Maybe_type_default
 = '=' Type_sum
 | /*empty*/;
 
-lexical Maybe_lifetimes
+syntax Maybe_lifetimes
 = Lifetimes
 | Lifetimes ','
 | /*empty*/;
 
-lexical Lifetimes
+syntax Lifetimes
 = Lifetime_and_bounds
 | Lifetimes ',' Lifetime_and_bounds;
 
-lexical Lifetime_and_bounds
+syntax Lifetime_and_bounds
 = '\'' Maybe_ltbounds
 | '\'static';
 
-lexical Lifetime
+syntax Lifetime
 = '\''
 | '\'static';
 
-lexical Trait_ref
+syntax Trait_ref
 = Path_generic_args_without_colons
 | '::' Path_generic_args_without_colons;
 
 /* #### #### Blocks, Statements, and expressions #### ####*/
 
-lexical Inner_attributes_and_block
+syntax Inner_attributes_and_block
 = '{' Maybe_inner_attributes Maybe_statements '}';
 
-lexical Block
+syntax Block
 = '{' Maybe_statement '}';
 
-lexical Maybe_statement
+syntax Maybe_statement
 = Statements
 | Statements Nonblock_expression
 | Nonblock_expression
 | /*empty*/;
 
-lexical Statements
+syntax Statements
 = Statement
 | Statements Statement;
 
-lexical Statement
+syntax Statement
 = Let
 | Statement_item
 | 'pub' Statement_item
@@ -781,34 +824,34 @@ lexical Statement
 | Nonblock_expression ';'
 | ';';
 
-lexical Maybe_expressions
+syntax Maybe_expressions
 = Expressions
 | Expressions ','
 | /*empty*/;
 
-lexical Maybe_expression
+syntax Maybe_expression
 = Expression
 | /*empty*/;
 
-lexical Expressions
+syntax Expressions
 = Expression
 | Expressions ',' Expression;
 
-lexical Path_expression
+syntax Path_expression
 = Path_generic_args_with_colons
 | '::' Path_generic_args_with_colons
 | 'self' '::' Path_generic_args_with_colons;
 
-lexical Path_generic_args_with_colons
+syntax Path_generic_args_with_colons
 = Identifier
 | Path_generic_args_with_colons '::' Identifier
 | Path_generic_args_with_colons '::' Generic_args;
 
-lexical Macro_expression
+syntax Macro_expression
 = Path_expression '!' Maybe_identifier Parens_delimited_token_trees
 | Path_expression '!' Maybe_identifier Brackets_delimited_token_trees;
 
-lexical Nonblock_expression
+syntax Nonblock_expression
 = Literal
 | Path_expression
 | 'self'
@@ -866,7 +909,7 @@ lexical Nonblock_expression
 | Expression_qualified_path
 | Nonblock_prefix_expression;
 
-lexical Expression
+syntax Expression
 = Literal
 | Path_expression
 | 'self'
@@ -926,7 +969,7 @@ lexical Expression
 | Block
 | Nonblock_prefix_expression;
 
-lexical Nonparen_expression
+syntax Nonparen_expression
 = Literal
 | Path_expression
 | 'self'
@@ -985,7 +1028,7 @@ lexical Nonparen_expression
 | Block
 | Nonblock_prefix_expression;
 
-lexical Expression_nostruct
+syntax Expression_nostruct
 = Literal
 | Path_expression
 | 'self'
@@ -1044,7 +1087,7 @@ lexical Expression_nostruct
 | Block
 | Nonblock_prefix_expression;
 
-lexical Nonblock_prefix_expression_nostruct
+syntax Nonblock_prefix_expression_nostruct
 = '-' Expression_nostruct
 | '!' Expression_nostruct
 | '*' Expression_nostruct
@@ -1054,7 +1097,7 @@ lexical Nonblock_prefix_expression_nostruct
 | 'move' Lambda_expression_nostruct
 | Proc_expression_nostruct;
 
-lexical Nonblock_prefix_expression
+syntax Nonblock_prefix_expression
 = '-' Expression
 | '!' Expression
 | '*' Expression
@@ -1064,7 +1107,7 @@ lexical Nonblock_prefix_expression
 | 'move' Lambda_expression
 | Proc_expression;
 
-lexical Expression_qualified_path
+syntax Expression_qualified_path
 = '\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\ 
   Maybe_qpath_params
 | '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
@@ -1076,61 +1119,61 @@ lexical Expression_qualified_path
 | '\<\<' Type_sum Maybe_as_trait_ref '\>' '::' Identifier\
   Generic_args Maybe_as_trait_ref '\>' '::' Identifier Generic_args ;
 
-lexical Maybe_qpath_params
+syntax Maybe_qpath_params
 = '::' Generic_args
 | /*empty*/;
 
-lexical Maybe_as_trait_ref
+syntax Maybe_as_trait_ref
 = 'as' Trait_ref
 | /*empty*/;
 
-lexical Lambda_expression
+syntax Lambda_expression
 = '||' Ret_type Expression
 | '|' Maybe_unboxed_closure_kind '|' Ret_type Expression
 | '|' Inferrable_params '|' Ret_type Expression
 | '|' '&' Maybe_mut ':' Inferrable_params '|' Ret_type Expression
 | '|' ':' Inferrable_params '|' Ret_type Expression;
 
-lexical Lambda_expression_nostruct
+syntax Lambda_expression_nostruct
 = '||' Ret_type Expression_nostruct
 | '|' Maybe_unboxed_closure_kind '|' Ret_type Expression_nostruct
 | '|' Inferrable_params '|' Ret_type Expression_nostruct
 | '|' '&' Maybe_mut ':' Inferrable_params '|' Ret_type Expression_nostruct
 | '|' ':' Inferrable_params '|' Ret_type Expression_nostruct;
 
-lexical Proc_expression
+syntax Proc_expression
 = 'proc' '(' ')' Expression
 | 'proc' '(' Inferrable_params ')' Expression;
 
-lexical Proc_expression_nostruct
+syntax Proc_expression_nostruct
 = 'proc' '(' ')' Expression_nostruct
 | 'proc' '(' Inferrable_params ')' Expression_nostruct;
 
-lexical Vector_expression
+syntax Vector_expression
 = Maybe_expression
 | Expressions ';' Expression;
 
-lexical Structure_expression_fields
+syntax Structure_expression_fields
 = Field_inits
 | Field_inits ','
 | Maybe_field_inits Defailt_field_init;
 
-lexical Maybe_field_inits
+syntax Maybe_field_inits
 = Field_inits
 | Field_inits ','
 | /*empty*/;
 
-lexical Field_inits
+syntax Field_inits
 = Field_init
 | Field_inits ',' Field_init;
 
-lexical Field_init
+syntax Field_init
 = Identifier ':' Expression;
 
-lexical Default_field_init
+syntax Default_field_init
 = '..' Expression;
 
-lexical Block_expression
+syntax Block_expression
 = Expression_match
 | Expression_if
 | Expression_if_let
@@ -1141,97 +1184,97 @@ lexical Block_expression
 | 'unsafe' Block
 | Path_expression '!' Maybe_identifier Braces_delimited_token_trees;
 
-lexical Full_block_expression
+syntax Full_block_expression
 = Block_expression
 | Full_block_expression '.' Path_generic_args_with_colons
 | Full_block_expression '.' Path_generic_args_with_colons '[' Maybe_expression ']'
 | Full_block_expression '.' Path_generic_args_with_colons '(' Maybe_expressions ')'
 | Full_block_expression '.' Literal_integer;
 
-lexical Expression_match
+syntax Expression_match
 = 'match' Expression_nostruct '{' '}'
 | 'match' Expression_nostruct '{' Match_clauses'}'
 | 'match' Expression_nostruct '{' Match_clauses Nonblock_match_clause '}'
 | 'match' Expression_nostruct '{' Nonblock_match_clause'}';
 
-lexical Match_clauses
+syntax Match_clauses
 = Match_clause
 | Match_clauses Match_clause;
 
-lexical Match_clause
+syntax Match_clause
 = Nonblock_match_clause ','
 | Block_match_clause
 | Block_match_clause ',';
 
-lexical Nonblock_match_clause
+syntax Nonblock_match_clause
 = Maybe_outer_attributes Patterns_or Maybe_guard '=\>' Nonblock_expression
 | Maybe_outer_attributes Patterns_or Maybe_guard '=\>' Full_block_expression;
 
-lexical Block_match_clause
+syntax Block_match_clause
 = Maybe_outer_attributes Patterns_or Maybe_guard '=\>' Block;
 
-lexical Maybe_guard
+syntax Maybe_guard
 = 'if' Expression_nostruct
 | /*empty*/;
 
-lexical Expression_if
+syntax Expression_if
 = 'if' Expression_nostruct Block
 | 'if' Expression_nostruct Block 'else' Block_or_if;
 
-lexical Expression_if_let
+syntax Expression_if_let
 = 'if' 'let' Pattern '=' Expression_nostruct Block
 | 'if' 'let' Pattern '=' Expression_nostruct Block 'else' Block_or_if;
 
-lexical Block_or_if
+syntax Block_or_if
 = Block
 | Expression_if
 | Expression_if_let;
 
 
-lexical Expression_while
+syntax Expression_while
 = Maybe_label 'while' Expression_nostruct Block;
 
-lexical Expression_while_let
+syntax Expression_while_let
 = Maybe_label 'while' 'let' Pattern '=' Expression_nostruct Block;
 
-lexical Expression_loop
+syntax Expression_loop
 = Maybe_label 'loop' Block;
 
-lexical Expression_for
+syntax Expression_for
 = Maybe_label 'for' Pattern 'in' Expression_nostruct Block;
 
-lexical Maybe_label
+syntax Maybe_label
 = Lifetime ':'
 | /*empty*/;
 
-lexical Let
+syntax Let
 = 'let' Pattern Maybe_type_ascription Maybe_init_expression ';';
 
 /* #### #### Macros and misc. rules #### ####*/
 
-lexical Literal
+syntax Literal
 = Literal_byte
 | Literal_char
 | Literal_integer
 | Literal_float
-| True
-| False
+| 'true'
+| 'false'
 | String;
 
-lexical String
+syntax String
 = Literal_string
 | Literal_string_raw
 | Literal_byte_string
 | Literal_byte_string_raw;
 
-lexical Maybe_identifier
+syntax Maybe_identifier
 = /*empty*/
 | Identifier;
 
-lexical Identifier
+syntax Identifier
 = Ident;
 
-lexical Unpaired_token
+syntax Unpaired_token
 = '\<\<'                        
 | '\>\>'                        
 | '\<='                         
@@ -1256,14 +1299,14 @@ lexical Unpaired_token
 | '::'                    
 | '-\>'                     
 | '=\>'                  
-| LIT_BYTE                   
-| LIT_CHAR                   
-| LIT_INTEGER                
-| LIT_FLOAT                  
-| LIT_STR                    
-| LIT_STR_RAW                
-| LIT_BYTE_STR               
-| LIT_BYTE_STR_RAW           
+| Literal_byte                   
+| Literal_char                   
+| Literal_integer                
+| Literal_float                  
+| Literal_string                    
+| Literal_string_raw                
+| Literal_byte_string               
+| Literal_byte_string_raw           
 | Ident                      
 | '_'                 
 | '\''                   
@@ -1304,8 +1347,8 @@ lexical Unpaired_token
 | 'const'                      
 | 'where'                      
 | 'typeof'                     
-| INNER_DOC_COMMENT          
-| OUTER_DOC_COMMENT          
+| Inner_doc_comment       
+| Outer_doc_comment          
 | Shebang                    
 | '\'static'            
 | ';'                        
@@ -1330,24 +1373,24 @@ lexical Unpaired_token
 | '^'                        
 | '%';
 
-lexical Token_trees
+syntax Token_trees
 = /*empty*/
 | Token_trees Token_tree;
 
-lexical Token_tree
+syntax Token_tree
 = Delimited_token_trees
 | Unpaired_token;
 
-lexical Delimited_token_trees
+syntax Delimited_token_trees
 = Parens_delimited_token_trees
 | Braces_delimited_token_trees
 | Brackets_delimited_token_trees;
 
-lexical Parens_delimited_token_trees
+syntax Parens_delimited_token_trees
 = '(' Token_Trees ')';
 
-lexical Braces_delimited_token_trees
+syntax Braces_delimited_token_trees
 = '{' Token_trees '}';
 
-lexical Brackets_delimited_token_trees
+syntax Brackets_delimited_token_trees
 = '[' Token_trees ']';
