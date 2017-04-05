@@ -411,7 +411,7 @@ syntax Params
 | Params ',' Param;
 
 syntax Param
-= Pat ':' Type_sum;
+= Pattern ':' Type_sum;
 
 syntax Inferrable_params
 = Inferrable_param
@@ -795,7 +795,7 @@ syntax Trait_ref
 = Path_generic_args_without_colons
 | '::' Path_generic_args_without_colons;
 
-/* #### #### Blocks, Statements, and expressions #### ####*/
+/* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
 = '{' Maybe_inner_attributes Maybe_statements '}';
