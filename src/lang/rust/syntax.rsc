@@ -4,54 +4,77 @@ module lang::rust::\syntax
 
 import Prelude;
 import vis::ParseTree;
+import analysis::grammars::Ambiguity;
 
-layout Whitespace = [\ \t\r\n]* !>> [\ \t\r\n];
-lexical Inner_doc_comment = "///[^\n]*\n" | "/**[^*][^*]**/";
-lexical Linecomment = "//[^\n]*\n" | "////[^\n]*\n";
-lexical Outer_doc_comment = "//![^\n]*\n" | "/*![^*][^*]*/";
-lexical Blockcomment = "/**/";
+
+layout Whitespace 
+	= WhiteSpaceOrComment* !>> [\ \t\r\n] !>> "//" !>> "/*";
+
+lexical WhiteSpaceOrComment
+	= [\ \t\r\n]
+	| Comment
+	;
+
+lexical Comment
+	= @category="Comment" "/*" (![*] | [*] !>> [/])* "*/" 
+	| @category="Comment" "//" ![\n]* !>> [\ \t\r \u00A0 \u1680 \u2000-\u200A \u202F \u205F \u3000] $ // the restriction helps with parsing speed
+	;
+
+lexical Ident
+	= ([a-z A-Z \u0080-\u00ff _][a-z A-Z 0-9 \u0080-\u00ff _]*) !>> [a-z A-Z 0-9 \u0080-\u00ff _]
+	;
 
 lexical Literal_byte
-= "b\'\\[nrt\\\'\\u0220]\'" 
-| "b\'\\u00[0-9a-fA-F]{2}\'" 
-| "b\'\\u[0-9a-fA-F]{4}\'" 
-| "b\'\\U[0-9a-fA-F]{8}\'" 
-| "b\'.\'";
+	= [b][\'][\\][nrt \\ \' \u0220][\']
+	| [b][\'][\u0000-\u00FF][\'] // Could this be deleted becuase of the line under it?
+	| [b][\'][\u0000-\uFFFF][\']
+	| [b][\'][\u00000000-\uFFFFFFFF][\']
+	| [b][\'][.][\']
+	;
 
 lexical Literal_char 
-= "\'\\[nrt\\\'\u0220]\'" 
-| "\'\\u00[0-9a-fA-F]{2}\'" 
-| "\'.\'" 
-| "\'[\\u0080-\\u00ff]{2,4}\'";
+	= [\'][\\][nrt \\ \' \u0220][\'] 
+	| [\'][\u0000-\u00FF][\']
+	| [\'][.][\']
+	| [\'][\u0080-\u00ff][\']
+	;
 
-lexical Literal_integer 
-= "0x[0-9a-fA-F_]+" 
-| "0o[0-8_]+" 
-| "0b[01_]+" 
-| "[0-9][0-9_]*" 
-| "[0-9][0-9_]*.(.|[a-zA-Z])";
+syntax Literal_integer
+	= [0][x][0-9a-fA-F_]+ 
+	| [0][o][0-8_]+ 
+	| [0][b][01_]+
+	| [0-9][0-9_]*
+	| [0-9][0-9_]*[.]([.]|[a-zA-Z])
+	;
 
 lexical Literal_float 
-= "[0-9][0-9_]*.[0-9_]*([eE][-+]?[0-9_]+)?" 
-| "[0-9][0-9_]*(.[0-9_]*)?[eE][-+]?[0-9_]+";
+	= [0-9][0-9_]*[.][0-9_]*([eE][\-+]?[0-9_]+)?
+	| [0-9][0-9_]*([.][0-9_]*)?[eE][\-+]?[0-9_]+
+	;
 
 lexical Literal_string
-= "\"[.\n]*\"";
+	= [\"][.\n]*[\"]
+	;
 
 lexical Literal_string_raw 
-= "r\"[.\n]*\"";
+	= [r][\"][.\n]*[\"]
+	;
 
 lexical Literal_byte_string 
-= "b\"[.\n]*\"";
+	= [b][\"][.\n]*[\"]
+	;
 
-lexical Literal_byte_string_raw 
-= "br\"[].\n*\"";
+lexical Literal_byte_string_raw
+	= [b][r][\"][.\n]*[\"]
+	;
 
-syntax Shebang 
-= '#!';
+lexical Shebang 
+	= [#][!]
+	;
 
 syntax Shebang_line 
-= "#!" "[^[\n]*";
+	= [#][!] [^\n]*
+	;
 
 /* #### #### Items and attributes #### #### */
 
@@ -76,22 +99,18 @@ syntax Inner_attribute
 | InnerAttrs:Inner_doc_comment;
 
 syntax Maybe_outer_attributes
-= Outer_attributes
-| /*empty*/;
-
-syntax Outer_attributes
-= OuterAttrs:Outer_attributes
-| Outer_attributes Outer_attribute;
+= Outer_attribute*;
 
 syntax Outer_attribute
-= '#' '[' Meta_item ']'
-| Outer_doc_comment;
+= '#' '[' Meta_item ']';
 
 syntax Meta_item
 = MetaWord:Identifier
 | MetaNameValue:Identifier '=' Literal
-| MetaList:Identifier '(' Meta_sequence ')'
-| MetaList:Identifier '(' Meta_sequence ',' ')';
+| MetaList:Identifier '(' {Meta_item ","}+ ')'
+| MetaList:Identifier '(' {Meta_item ","}+ ')';
+
+
 
 syntax Meta_sequence 
 = /*empty*/
@@ -142,7 +161,7 @@ syntax View_item
 | ViewItemExternCrate:'extern' 'crate' Identifier 'as' Identifier ';';
 
 syntax Extern_fn_item 
-= ViewItemExternFn:'extern' Maybe_abi Item_fn;
+= ViewItemExternFn:'extern' String? abi Item_fn;
 
 syntax Use_item
 = ViewItemUse:'use' View_path ';';
@@ -185,17 +204,11 @@ syntax Item_struct
 | ItemStruct:'struct' Identifier Generic_params Maybe_where_clause ';';
 
 syntax Structure_declaration_args
-= '{' Structure_declaration_fields '}'
-| '{' Structure_declaration_fields ',' '}';
+= "{" {Structure_declaration_field ","}* ","? "}";
 
 syntax Structure_typle_args
 = '(' Structure_tuple_fields ')'
 | '(' Structure_tuple_fields ',' ')';
-
-syntax Structure_declaration_fields
-= StructFields:Structure_declaration_field
-| Structure_declaration_fields ',' Structure_declaration_field
-| /*empty*/;
 
 syntax Structure_decl_field
 = StructField:Attributes_and_vis Identifier ':' Type_sum;
@@ -228,8 +241,7 @@ syntax Enum_args
 
 syntax Item_mod
 = ItemMod:'mod' Identifier ';'
-| ItemMod:'mod' Identifier '{' Maybe_mod_items '}'
-| ItemMod:'mod' Identifier '{' Inner_attrs Maybe_mod_items '}';
+| ItemMod:'mod' Identifier '{' Inner_attrs? Maybe_mod_items '}';
 
 syntax Item_foreign_mod
 = ItemForeignMod:'extern' Maybe_abi '{' Maybe_foreign_items '}'
@@ -329,6 +341,19 @@ syntax Type_method
 syntax Method
 = Method:Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block
 | Method:Attributes_and_vis Maybe_unsafe 'extern' Maybe_abi 'fn' Identifier Generic_params Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block;
+
+/*
+// spelen met de syntax!!
+syntax Modifiers
+	= "unsafe"
+	| "extern" String abi?
+	| "pub"
+	;
+	
+syntax Method
+	= Attributes* attrs Modifiers* mods "fn" Identifier name GenericParams generic "(" {Parameter ","}+ params ")" 
+		Where? clause InnerAttributes* Block; 
+*/
 
 syntax Impl_method
 = Method:Attributes_and_vis Maybe_unsafe 'fn' Identifier Generic_params Fn_decl_with_self Maybe_where_clause Inner_attributes_and_block
@@ -1027,7 +1052,7 @@ syntax Nonparen_expression
 
 syntax Expression_nostruct
 = ExprLit:Literal
-| ExprPath:Path_expression
+> ExprPath:Path_expression
 | 'self'
 | Macro_expression
 | Expression_nostruct '.' Path_generic_args_with_colons
@@ -1263,8 +1288,8 @@ syntax Maybe_identifier
 = /*empty*/
 | Identifier;
 
-lexical Identifier
-= ident:[a-zA-Z_][a-zA-Z0-9_]*;
+syntax Identifier
+= ident:Ident;
 
 syntax Unpaired_token
 = '\<\<'                        
