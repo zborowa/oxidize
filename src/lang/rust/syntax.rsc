@@ -20,6 +20,7 @@ lexical Comment
 	| @category="Comment" "//" ![\n]* !>> [\ \t\r \u00A0 \u1680 \u2000-\u200A \u202F \u205F \u3000] $ // the restriction helps with parsing speed
 	;
 
+// Identifier regex not to be confused with syntax Identifier present in the file
 lexical Ident
 	= ([a-z A-Z \u0080-\u00ff _][a-z A-Z 0-9 \u0080-\u00ff _]*) !>> [a-z A-Z 0-9 \u0080-\u00ff _]
 	;
@@ -35,6 +36,7 @@ lexical Literal_byte
 lexical Literal_char 
 	= [\'][\\][nrt \\ \' \u0220][\'] 
 	| [\'][\u0000-\u00FF][\']
+	| [\'][\u000000-\uFFFFFF][\']
 	| [\'][.][\']
 	| [\'][\u0080-\u00ff][\']
 	;
@@ -53,19 +55,23 @@ lexical Literal_float
 	;
 
 lexical Literal_string
-	= [\"][.\n]*[\"]
+	= [\"][n\nr\rt\\\u0027\u0220]*[\"]
+	//| [\"][\u0000-\u00FF]*[\"]
+	| [\"][\u000000-\uFFFFFF]*[\"]
+	| [\"][^n\nrt\\\u0027\u0220]*[\"]
+	| [\"]([.]|[\n])*[\"]
 	;
 
 lexical Literal_string_raw 
-	= [r][\"][.\n]*[\"]
+	= [r]Literal_string
 	;
 
 lexical Literal_byte_string 
-	= [b][\"][.\n]*[\"]
+	= [b]Literal_string
 	;
 
 lexical Literal_byte_string_raw
-	= [b][r][\"][.\n]*[\"]
+	= [b][r]Literal_string
 	;
 
 lexical Shebang 
@@ -327,8 +333,12 @@ syntax Impl_item
 	;
 
 syntax Item_fn
-	= item_fn:"fn" Identifier Generic_params? 
-		Fn_decl Where_clause? Inner_attributes_and_block
+	= item_fn:"fn" 
+		Identifier identifier 
+		Generic_params? generic_params 
+		Fn_decl 
+		Where_clause? 
+		Inner_attributes_and_block
 	;
 
 syntax Item_unsafe_fn
@@ -337,7 +347,7 @@ syntax Item_unsafe_fn
 	;
 
 syntax Fn_decl
-	= fn_decl:Fn_params Ret_type
+	= fn_decl:Fn_params params Ret_type? type
 	;
 
 syntax Fn_decl_with_self
@@ -410,8 +420,8 @@ syntax Named_arg
 syntax Ret_type
 	= "-\>" "!"
 	| ret_ty:"-\>" Type
-	| Identifier /*empty*/
-;
+	//| Identifier /*empty*/
+	;
 
 syntax Generic_params
 	= generics:"\<" Lifetime "\>"
@@ -682,17 +692,16 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= "{" {Inner_attribute " "}+? Maybe_statements "}"
+	= "{" {Inner_attribute " "}* {Maybe_statement " "}* "}"
 	;
 
 syntax Block
-	= "{" Maybe_statement "}"
+	= "{" Maybe_statement? "}"
 	;
 
 syntax Maybe_statement
 	= Statements Nonblock_expression?
 	| Nonblock_expression
-	| /*empty*/
 	;
 
 syntax Statements
