@@ -8,7 +8,8 @@ import analysis::grammars::Ambiguity;
 
 
 layout Whitespace 
-	= WhiteSpaceOrComment* !>> [\ \t\r\n] !>> "//" !>> "/*";
+	= WhiteSpaceOrComment* !>> [\ \t\r\n] !>> "//" !>> "/*"
+	;
 
 lexical WhiteSpaceOrComment
 	= [\ \t\r\n]
@@ -19,10 +20,18 @@ lexical Comment
 	= @category="Comment" "/*" (![*] | [*] !>> [/])* "*/" 
 	| @category="Comment" "//" ![\n]* !>> [\ \t\r \u00A0 \u1680 \u2000-\u200A \u202F \u205F \u3000] $ // the restriction helps with parsing speed
 	;
+	
+keyword Rust_keywords
+	= "abstract" | "alignof" | "as" | "become" | "box" | "break" | "const" | "continue" | "crate" | "do" | "else" 
+	| "enum" | "extern" | "false" | "final" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "macro" | "match" 
+	| "mod" | "move" | "mut" | "offsetof" | "override" | "priv" | "proc" | "pub" | "pure" | "ref" | "return" | "Self" 
+	| "self" | "sizeof" | "static" | "struct" | "super" | "trait" | "true" | "type" | "typeof" | "unsafe" | "unsized" 
+	| "use" | "virtual" | "where" | "while" | "yield"
+	;
 
 // Identifier regex not to be confused with syntax Identifier present in the file
 lexical Ident
-	= ([a-z A-Z \u0080-\u00ff _][a-z A-Z 0-9 \u0080-\u00ff _]*) !>> [a-z A-Z 0-9 \u0080-\u00ff _]
+	= ([a-z A-Z \u0080-\u00ff _][a-z A-Z 0-9 \u0080-\u00ff _]*) !>> [a-z A-Z 0-9 \u0080-\u00ff _] \ Rust_keywords
 	;
 
 lexical Literal_byte
@@ -41,22 +50,22 @@ lexical Literal_char
 	| [\'][\u0080-\u00ff][\']
 	;
 
-syntax Literal_integer
-	= [0][x][0-9a-fA-F_]+ 
-	| [0][o][0-8_]+ 
-	| [0][b][01_]+
-	| [0-9][0-9_]*
-	| [0-9][0-9_]*[.]([.]|[a-zA-Z])
+lexical Literal_integer
+	= [0][x][0-9 a-f A-F _]+ 
+	| [0][o][0-8 _]+ 
+	| [0][b][01 _]+
+	| [0-9][0-9 _]* !>> [0-9 _]
+	| [0-9][0-9 _]*[.]([.]|[a-z A-Z])
 	;
 
 lexical Literal_float 
-	= [0-9][0-9_]*[.][0-9_]*([eE][\-+]?[0-9_]+)?
-	| [0-9][0-9_]*([.][0-9_]*)?[eE][\-+]?[0-9_]+
+	= [0-9][0-9 _]*[.][0-9 _]*([eE][\- +]?[0-9 _]+)?
+	| [0-9][0-9 _]*([.][0-9 _]*)?[eE][\- +]?[0-9 _]+
 	;
 
 lexical Literal_string
 	= [\"][n\nr\rt\\\u0027\u0220]*[\"]
-	//| [\"][\u0000-\u00FF]*[\"]
+	//| [\"][\u0000-\u00FF]*[\"] // Creates ambiguity but is stated in the Bison source
 	| [\"][\u000000-\uFFFFFF]*[\"]
 	| [\"][^n\nrt\\\u0027\u0220]*[\"]
 	| [\"]([.]|[\n])*[\"]
@@ -84,9 +93,9 @@ lexical Shebang_line
 
 /* #### #### Items and attributes #### #### */
 
-syntax Crate
-	= crate:Shebang_line? Inner_attribute+ inner_attributes Mod_item?
-	| crate:Shebang_line? Mod_item?
+start syntax Crate
+	= crate:Shebang_line? Inner_attribute+ inner_attributes Mod_item? mod_idem
+	| crate:Shebang_line? Mod_item? mode_item
 	;
 
 syntax Inner_attribute
@@ -134,9 +143,12 @@ syntax Item_const
 	;
 
 syntax Item_macro
-	= item_macro:Path_expression path_expression "!" Identifier? identifier Parens_delimited_token_trees token_trees ";"
-	| item_macro:Path_expression "!" Identifier? Braces_delimited_token_trees token_trees
-	| item_macro:Path_expression "!" Identifier? Brackets_delimited_token_trees token_trees ";"
+	= item_macro:Path_expression path_expression "!" Identifier? identifier 
+		Parens_delimited_token_trees token_trees ";"
+	| item_macro:Path_expression path_expression "!" Identifier? identifier 
+		Braces_delimited_token_trees token_trees
+	| item_macro:Path_expression path_expression "!" Identifier? identifier 
+		Brackets_delimited_token_trees token_trees ";"
 	;
 
 syntax View_item
@@ -190,11 +202,11 @@ syntax Init_expression
 
 syntax Item_struct
 	= item_struct:"struct" Identifier identifier Generic_params? generic_params 
-		Where_clause? Struct_decl_args
+		Where_clause? where Struct_decl_args
 	| item_struct:"struct" Identifier identifier Generic_params? generic_params 
-		Struct_tuple_args struct_tuple_args Where_clause? ";"
+		Struct_tuple_args struct_tuple_args Where_clause? where ";"
 	| item_struct:"struct" Identifier identifier Generic_params? generic_params 
-		Where_clause? ";"
+		Where_clause? where ";"
 	;
 
 syntax Struct_decl_args
@@ -215,7 +227,7 @@ syntax Struct_tuple_field
 
 syntax Item_enum
 	= item_enum:"enum" Identifier identifier Generic_params? generic_params 
-		Where_clause? "{" {Enum_def ","}* enum_defs","? "}"
+		Where_clause? where "{" {Enum_def ","}* enum_defs","? "}"
 	;
 
 syntax Enum_def
@@ -229,37 +241,37 @@ syntax Enum_args
 	;
 
 syntax Item_mod
-	= item_mod:"mod" Identifier ";"
-	| item_mod:"mod" Identifier "{" Inner_attribute+ Mod_item* "}"
+	= item_mod:"mod" Identifier identifier ";"
+	| item_mod:"mod" Identifier identifier "{" Inner_attribute+ inner_attributes Mod_item* mode_items"}"
 	;
 
 syntax Item_foreign_mod
-	= item_foreign_mod:"extern" String? "{" Foreign_item* "}"
-	| item_foreign_mod:"extern" String? "{" Inner_attribute+ Foreign_item* "}"
+	= item_foreign_mod:"extern" String? name "{" Inner_attribute* Foreign_item* "}"
 	;
 
 syntax Foreign_item
 	= foreign_item:Attributes_and_vis "static" "mut"? Identifier identifier 
 		":" Type type ";"
 	| foreign_item:Attributes_and_vis "unsafe"? "fn" Identifier identifier 
-		Generic_params? "(" Params? ")" Ret_type Where_clause? ";"
+		Generic_params? generic_params "(" Params? params ")" Ret_type Where_clause? where ";"
 	;
 
 syntax Identifiers_or_self
-	= idents_or_self:{(Identifier | "self") ","}+ ("as" Identifier)?
+	= idents_or_self:{(Identifier identifier | "self" self) ","}+ ("as" Identifier identifier)?
 	;
 
 syntax Item_type
-	= item_type:"type" Identifier identifier Generic_params? Generic_params? Where_clause? "=" Type_sum ";"
+	= item_type:"type" Identifier identifier Generic_params? generic_params 
+		Where_clause? where "=" Type_sum type_sum ";"
 	;
 
 syntax For_sized 
-	= for_sized:"for" (("?" Identifier) | (Identifier "?"))
+	= for_sized:"for" (("?" Identifier identifier) | (Identifier identifier "?"))
 	;
 
 syntax Item_trait
-	= item_trait:"unsafe"? "trait" Identifier identifier Generic_params? generic_params For_sized? 
-		Type_param_bounds? Where_clause? "{" {Trait_item " "}+ "}"
+	= item_trait:"unsafe"? "trait" Identifier identifier Generic_params? generic_params For_sized? for_sized 
+		Type_param_bounds? bounds Where_clause? where "{" {Trait_item " "}+ trait_items "}"
 	;
 
 syntax Trait_item
@@ -269,7 +281,8 @@ syntax Trait_item
 	;
 
 syntax Trait_const
-	= const_trait_item:Outer_attribute? "const" Identifier identifier Type_ascription? ("=" Expression)? ";"
+	= const_trait_item:Outer_attribute? outer_attribute "const" Identifier identifier 
+		Type_ascription? type_ascription ("=" Expression)? ";"
 	;
 
 syntax Trait_type
@@ -692,21 +705,20 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= "{" {Inner_attribute " "}* {Maybe_statement " "}* "}"
+	= "{" {Inner_attribute Whitespace}* Maybe_statements "}"
 	;
 
 syntax Block
-	= "{" Maybe_statement? "}"
+	= "{" Maybe_statements? "}"
 	;
 
-syntax Maybe_statement
+syntax Maybe_statements
 	= Statements Nonblock_expression?
 	| Nonblock_expression
 	;
 
 syntax Statements
-	= Statement
-	| Statements Statement
+	= Statements:{Statement Whitespace}+ statements
 	;
 
 syntax Statement
@@ -732,7 +744,9 @@ syntax Path_expression
 	;
 
 syntax Path_generic_args_with_colons
-	= components:{(Identifier | Generic_args) "::"}+
+	= components:Identifier
+	| components:Path_generic_args_with_colons "::" Identifier
+	| components:Path_generic_args_with_colons "::" Generic_args
 	;
 
 syntax Macro_expression
@@ -758,36 +772,39 @@ syntax Nonblock_expression
 	| "return" Expression
 	| "break"
 	| "break" Lifetime
-	| Nonblock_expression "\<-" Expression
-	| Nonblock_expression "=" Expression
-	| Nonblock_expression "\<\<=" Expression
-	| Nonblock_expression "\>\>=" Expression
-	| Nonblock_expression "-=" Expression
-	| Nonblock_expression "&=" Expression
-	| Nonblock_expression "|=" Expression
-	| Nonblock_expression "+=" Expression
-	| Nonblock_expression "*=" Expression
-	| Nonblock_expression "/=" Expression
-	| Nonblock_expression "^=" Expression
-	| Nonblock_expression "%=" Expression
-	| Nonblock_expression "||" Expression
-	| Nonblock_expression "&&" Expression
-	| Nonblock_expression "==" Expression
-	| Nonblock_expression "!=" Expression
-	| Nonblock_expression "\<" Expression
-	| Nonblock_expression "\>" Expression
-	| Nonblock_expression "\<=" Expression
-	| Nonblock_expression "\>=" Expression
-	| Nonblock_expression "|" Expression
-	| Nonblock_expression "^" Expression
-	| Nonblock_expression "&" Expression
-	| Nonblock_expression "\<\<" Expression
-	| Nonblock_expression "\>\>" Expression
-	| Nonblock_expression "+" Expression
-	| Nonblock_expression "-" Expression
-	| Nonblock_expression "*" Expression
-	| Nonblock_expression "/" Expression
-	| Nonblock_expression "%" Expression
+	> left  ( Nonblock_expression "*" Expression
+			| Nonblock_expression "/" Expression
+			| Nonblock_expression "%" Expression
+			)
+	> left  ( Nonblock_expression "+" Expression
+			| Nonblock_expression "-" Expression
+			> Nonblock_expression "\<\<" Expression
+			| Nonblock_expression "\>\>" Expression
+			> Nonblock_expression "&" Expression
+			> Nonblock_expression "^" Expression
+			> Nonblock_expression "|" Expression
+			> Nonblock_expression "\<" Expression
+			| Nonblock_expression "\>" Expression
+			| Nonblock_expression "\<=" Expression
+			| Nonblock_expression "\>=" Expression
+			> Nonblock_expression "==" Expression
+			| Nonblock_expression "!=" Expression
+			> Nonblock_expression "||" Expression
+			> Nonblock_expression "&&" Expression
+			)
+	> right Nonblock_expression "\<-" Expression
+	> right ( Nonblock_expression "=" Expression
+			| Nonblock_expression "\<\<=" Expression
+			| Nonblock_expression "\>\>=" Expression
+			| Nonblock_expression "-=" Expression
+			| Nonblock_expression "&=" Expression
+			| Nonblock_expression "|=" Expression
+			| Nonblock_expression "+=" Expression
+			| Nonblock_expression "*=" Expression
+			| Nonblock_expression "/=" Expression
+			| Nonblock_expression "^=" Expression
+			| Nonblock_expression "%=" Expression
+			)
 	| Nonblock_expression ".."
 	| Nonblock_expression ".." Expression
 	| ".." Expression
@@ -806,7 +823,7 @@ syntax Expression
 	| Macro_expression
 	| Path_expression "{" Structure_expression_fields "}"
 	| Expression "." Path_generic_args_with_colons
-	| Expression "." Literal_integer
+	> Expression "." Literal_integer
 	| Expression "[" Expression? "]"
 	| Expression "(" (Expressions ","?)? ")"
 	| "(" (Expressions ","?)? ")"
@@ -817,36 +834,39 @@ syntax Expression
 	| "return" Expression
 	| "break"
 	| "break" Identifier
-	| Expression "\<-" Expression
-	| Expression "=" Expression
-	| Expression "\<\<=" Expression
-	| Expression "\>\>=" Expression
-	| Expression "-=" Expression
-	| Expression "&=" Expression
-	| Expression "|=" Expression
-	| Expression "+=" Expression
-	| Expression "*=" Expression
-	| Expression "/=" Expression
-	| Expression "^=" Expression
-	| Expression "%=" Expression
-	| Expression "||" Expression
-	| Expression "&&" Expression
-	| Expression "==" Expression
-	| Expression "!=" Expression
-	| Expression "\<" Expression
-	| Expression "\>" Expression
-	| Expression "\<=" Expression
-	| Expression "\>=" Expression
-	| Expression "|" Expression
-	| Expression "^" Expression
-	| Expression "&" Expression
-	| Expression "\<\<" Expression
-	| Expression "\>\>" Expression
-	| Expression "+" Expression
-	| Expression "-" Expression
-	| Expression "*" Expression
-	| Expression "/" Expression
-	| Expression "%" Expression
+	> left  ( Expression "*" Expression
+			| Expression "/" Expression
+			| Expression "%" Expression
+			)
+	> left  ( Expression "+" Expression
+			| Expression "-" Expression
+			> Expression "\<\<" Expression
+			| Expression "\>\>" Expression
+			> Expression "&" Expression
+			> Expression "^" Expression
+			> Expression "|" Expression
+			> Expression "\<" Expression
+			| Expression "\>" Expression
+			| Expression "\<=" Expression
+			| Expression "\>=" Expression
+			> Expression "==" Expression
+			| Expression "!=" Expression
+			> Expression "||" Expression
+			> Expression "&&" Expression
+			)
+	> right Expression "\<-" Expression
+	> right ( Expression "=" Expression
+			| Expression "\<\<=" Expression
+			| Expression "\>\>=" Expression
+			| Expression "-=" Expression
+			| Expression "&=" Expression
+			| Expression "|=" Expression
+			| Expression "+=" Expression
+			| Expression "*=" Expression
+			| Expression "/=" Expression
+			| Expression "^=" Expression
+			| Expression "%=" Expression
+			)
 	| Expression ".."
 	| Expression ".." Expression
 	| ".." Expression
@@ -877,36 +897,39 @@ syntax Nonparen_expression
 	| "return" Expression
 	| "break"
 	| "break" Identifier
-	| Nonparen_expression "\<-" Nonparen_expression
-	| Nonparen_expression "=" Nonparen_expression
-	| Nonparen_expression "\<\<=" Nonparen_expression
-	| Nonparen_expression "\>\>=" Nonparen_expression
-	| Nonparen_expression "-=" Nonparen_expression
-	| Nonparen_expression "&=" Nonparen_expression
-	| Nonparen_expression "|=" Nonparen_expression
-	| Nonparen_expression "+=" Nonparen_expression
-	| Nonparen_expression "*=" Nonparen_expression
-	| Nonparen_expression "/=" Nonparen_expression
-	| Nonparen_expression "^=" Nonparen_expression
-	| Nonparen_expression "%=" Nonparen_expression
-	| Nonparen_expression "||" Nonparen_expression
-	| Nonparen_expression "&&" Nonparen_expression
-	| Nonparen_expression "==" Nonparen_expression
-	| Nonparen_expression "!=" Nonparen_expression
-	| Nonparen_expression "\<" Nonparen_expression
-	| Nonparen_expression "\>" Nonparen_expression
-	| Nonparen_expression "\<=" Nonparen_expression
-	| Nonparen_expression "\>=" Nonparen_expression
-	| Nonparen_expression "|" Nonparen_expression
-	| Nonparen_expression "^" Nonparen_expression
-	| Nonparen_expression "&" Nonparen_expression
-	| Nonparen_expression "\<\<" Nonparen_expression
-	| Nonparen_expression "\>\>" Nonparen_expression
-	| Nonparen_expression "+" Nonparen_expression
-	| Nonparen_expression "-" Nonparen_expression
-	| Nonparen_expression "*" Nonparen_expression
-	| Nonparen_expression "/" Nonparen_expression
-	| Nonparen_expression "%" Nonparen_expression
+	> left  ( Nonparen_expression "*" Nonparen_expression
+			| Nonparen_expression "/" Nonparen_expression
+			| Nonparen_expression "%" Nonparen_expression
+			)
+	> left  ( Nonparen_expression "+" Nonparen_expression
+			| Nonparen_expression "-" Nonparen_expression
+			> Nonparen_expression "\<\<" Nonparen_expression
+			| Nonparen_expression "\>\>" Nonparen_expression
+			> Nonparen_expression "&" Nonparen_expression
+			> Nonparen_expression "^" Nonparen_expression
+			> Nonparen_expression "|" Nonparen_expression
+			> Nonparen_expression "\<" Nonparen_expression
+			| Nonparen_expression "\>" Nonparen_expression
+			| Nonparen_expression "\<=" Nonparen_expression
+			| Nonparen_expression "\>=" Nonparen_expression
+			> Nonparen_expression "==" Nonparen_expression
+			| Nonparen_expression "!=" Nonparen_expression
+			> Nonparen_expression "||" Nonparen_expression
+			> Nonparen_expression "&&" Nonparen_expression
+			)
+	> right Nonparen_expression "\<-" Nonparen_expression
+	> right ( Nonparen_expression "=" Nonparen_expression
+			| Nonparen_expression "\<\<=" Nonparen_expression
+			| Nonparen_expression "\>\>=" Nonparen_expression
+			| Nonparen_expression "-=" Nonparen_expression
+			| Nonparen_expression "&=" Nonparen_expression
+			| Nonparen_expression "|=" Nonparen_expression
+			| Nonparen_expression "+=" Nonparen_expression
+			| Nonparen_expression "*=" Nonparen_expression
+			| Nonparen_expression "/=" Nonparen_expression
+			| Nonparen_expression "^=" Nonparen_expression
+			| Nonparen_expression "%=" Nonparen_expression
+			)
 	| Nonparen_expression ".."
 	| Nonparen_expression ".." Nonparen_expression
 	| ".." Nonparen_expression
@@ -937,36 +960,39 @@ syntax Expression_nostruct
 	| "return" Expression
 	| "break"
 	| "break" Identifier
-	| Expression_nostruct "\<-" Expression_nostruct
-	| Expression_nostruct "=" Expression_nostruct
-	| Expression_nostruct "\<\<=" Expression_nostruct
-	| Expression_nostruct "\>\>=" Expression_nostruct
-	| Expression_nostruct "-=" Expression_nostruct
-	| Expression_nostruct "&=" Expression_nostruct
-	| Expression_nostruct "|=" Expression_nostruct
-	| Expression_nostruct "+=" Expression_nostruct
-	| Expression_nostruct "*=" Expression_nostruct
-	| Expression_nostruct "/=" Expression_nostruct
-	| Expression_nostruct "^=" Expression_nostruct
-	| Expression_nostruct "%=" Expression_nostruct
-	| Expression_nostruct "||" Expression_nostruct
-	| Expression_nostruct "&&" Expression_nostruct
-	| Expression_nostruct "==" Expression_nostruct
-	| Expression_nostruct "!=" Expression_nostruct
-	| Expression_nostruct "\<" Expression_nostruct
-	| Expression_nostruct "\>" Expression_nostruct
-	| Expression_nostruct "\<=" Expression_nostruct
-	| Expression_nostruct "\>=" Expression_nostruct
-	| Expression_nostruct "|" Expression_nostruct
-	| Expression_nostruct "^" Expression_nostruct
-	| Expression_nostruct "&" Expression_nostruct
-	| Expression_nostruct "\<\<" Expression_nostruct
-	| Expression_nostruct "\>\>" Expression_nostruct
-	| Expression_nostruct "+" Expression_nostruct
-	| Expression_nostruct "-" Expression_nostruct
-	| Expression_nostruct "*" Expression_nostruct
-	| Expression_nostruct "/" Expression_nostruct
-	| Expression_nostruct "%" Expression_nostruct
+	> left  ( Expression_nostruct "*" Expression_nostruct
+			| Expression_nostruct "/" Expression_nostruct
+			| Expression_nostruct "%" Expression_nostruct
+			)
+	> left  ( Expression_nostruct "+" Expression_nostruct
+			| Expression_nostruct "-" Expression_nostruct
+			> Expression_nostruct "\<\<" Expression_nostruct
+			| Expression_nostruct "\>\>" Expression_nostruct
+			> Expression_nostruct "&" Expression_nostruct
+			> Expression_nostruct "^" Expression_nostruct
+			> Expression_nostruct "|" Expression_nostruct
+			> Expression_nostruct "\<" Expression_nostruct
+			| Expression_nostruct "\>" Expression_nostruct
+			| Expression_nostruct "\<=" Expression_nostruct
+			| Expression_nostruct "\>=" Expression_nostruct
+			> Expression_nostruct "==" Expression_nostruct
+			| Expression_nostruct "!=" Expression_nostruct
+			> Expression_nostruct "||" Expression_nostruct
+			> Expression_nostruct "&&" Expression_nostruct
+			)
+	> right Expression_nostruct "\<-" Expression_nostruct
+	> right ( Expression_nostruct "=" Expression_nostruct
+			| Expression_nostruct "\<\<=" Expression_nostruct
+			| Expression_nostruct "\>\>=" Expression_nostruct
+			| Expression_nostruct "-=" Expression_nostruct
+			| Expression_nostruct "&=" Expression_nostruct
+			| Expression_nostruct "|=" Expression_nostruct
+			| Expression_nostruct "+=" Expression_nostruct
+			| Expression_nostruct "*=" Expression_nostruct
+			| Expression_nostruct "/=" Expression_nostruct
+			| Expression_nostruct "^=" Expression_nostruct
+			| Expression_nostruct "%=" Expression_nostruct
+			)
 	| Expression_nostruct ".."
 	| Expression_nostruct ".." Expression_nostruct
 	| ".." Expression_nostruct
@@ -1243,8 +1269,9 @@ syntax Unpaired_token
 	| "const"                      
 	| "where"                      
 	| "typeof"                     
-	| Inner_doc_comment       
-	| Outer_doc_comment          
+	//| Inner_doc_comment       
+	//| Outer_doc_comment
+	| Comment          
 	| Shebang                    
 	| "\'static"            
 	| ";"                        
@@ -1286,7 +1313,7 @@ syntax Delimited_token_trees
 	;
 
 syntax Parens_delimited_token_trees
-	= tttok:"(" Token_Trees ")"
+	= tttok:"(" Token_trees ")"
 	;
 
 syntax Braces_delimited_token_trees
