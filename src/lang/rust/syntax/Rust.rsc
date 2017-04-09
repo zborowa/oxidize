@@ -36,15 +36,15 @@ lexical Ident
 
 lexical Literal_byte
 	= [b][\'][\\][nrt \\ \' \u0220][\']
-	| [b][\'][\u0000-\u00FF][\'] // Could this be deleted becuase of the line under it?
-	| [b][\'][\u0000-\uFFFF][\']
+	//| [b][\'][\u0000-\u00FF][\'] // Could this be deleted becuase of the line under it?
+	//| [b][\'][\u0000-\uFFFF][\']
 	| [b][\'][\u00000000-\uFFFFFFFF][\']
 	| [b][\'][.][\']
 	;
 
 lexical Literal_char 
 	= [\'][\\][nrt \\ \' \u0220][\'] 
-	| [\'][\u0000-\u00FF][\']
+	//| [\'][\u0000-\u00FF][\']
 	| [\'][\u000000-\uFFFFFF][\']
 	| [\'][.][\']
 	| [\'][\u0080-\u00ff][\']
@@ -63,12 +63,22 @@ lexical Literal_float
 	| [0-9][0-9 _]*([.][0-9 _]*)?[eE][\- +]?[0-9 _]+
 	;
 
+//\x22                     { BEGIN(str); yymore(); }
+//<str>\x22                { BEGIN(suffix); return LIT_STR; }
+//
+//<str><<EOF>>                { return -1; }
+//<str>\\[n\nr\rt\\\x27\x220] { yymore(); }
+//<str>\\x[0-9a-fA-F]{2}      { yymore(); }
+//<str>\\u\{[0-9a-fA-F]?{6}\} { yymore(); }
+//<str>\\[^n\nrt\\\x27\x220]  { return -1; }
+//<str>(.|\n)                 { yymore(); }
+
 lexical Literal_string
-	= [\"][n\nr\rt\\\u0027\u0220]*[\"]
+	= [\"] [n \n r \r t \\ \u0027 \u0220]* [\"]
 	//| [\"][\u0000-\u00FF]*[\"] // Creates ambiguity but is stated in the Bison source
-	| [\"][\u000000-\uFFFFFF]*[\"]
-	| [\"][^n\nrt\\\u0027\u0220]*[\"]
-	| [\"]([.]|[\n])*[\"]
+	| [\"] [\u000000-\uFFFFFF]* [\"]
+	| [\"] [^n \n r t \\ \u0027 \u0220]* [\"]
+	| [\"] ([.] | [\n])* [\"]
 	;
 
 lexical Literal_string_raw 
