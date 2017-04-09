@@ -1,3 +1,3 @@
 module \test::Test
 
-extend \test::LiteralInteger;
+extend \test::Literals;
