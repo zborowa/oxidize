@@ -1,11 +1,11 @@
-module \test::TestLiteralInteger
+module \test::LiteralInteger
 
 import Prelude;
 
 import lang::rust::\syntax;
-import \test::input::LoadFile;
+import \test::func::LoadFile;
 
-test bool Test_LetLiteralInteger(){
+test bool LiteralInteger(){
 	str input_file = LoadFile("let_integers");
 	Tree parse_tree = parse(#Crate, input_file);
 	
