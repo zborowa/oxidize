@@ -2,13 +2,14 @@
 
 module main
 
+// Standard libraries
 import Prelude;
-
 import analysis::grammars::Ambiguity;
-
 import vis::ParseTree;
 
+// Custom libraries
 import lang::rust::\syntax;
+import \test::input::LoadFile;
 
 //
 //lexical Aas = [a-z]+ !>> [a-z];
