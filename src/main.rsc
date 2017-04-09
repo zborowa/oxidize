@@ -9,7 +9,7 @@ import vis::ParseTree;
 
 // Custom libraries
 import lang::rust::\syntax;
-import \test::input::LoadFile;
+import \test::func::LoadFile;
 
 //
 //lexical Aas = [a-z]+ !>> [a-z];
@@ -22,7 +22,7 @@ import \test::input::LoadFile;
 //layout L = [\ ]*;
 
 public void main(list[str] param = []){
-	str rust_file = readFile(|project://oxidize/src/test/input/fn_main_println.rs|);
+	str rust_file = LoadFile("let_integers");
 	renderParsetree([start[Crate]]rust_file);
 	iprintln(diagnose([start[Crate]]rust_file));
 }
