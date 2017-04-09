@@ -2,7 +2,7 @@ module \test::LiteralInteger
 
 import Prelude;
 
-import lang::rust::\syntax;
+import lang::rust::\syntax::Rust;
 import \test::func::LoadFile;
 
 test bool LiteralInteger(){
