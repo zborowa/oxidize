@@ -1,6 +1,8 @@
-module \test::input::LoadFile
+module \test::func::LoadFile
 
 import Prelude;
+import IO;
+import Exception;
 
 str FileExtension(str file_name){
 	if(!endsWith(file_name, ".rs")); file_name += ".rs";
@@ -13,7 +15,9 @@ str LoadFile(str input_file_name){
 	
 	try
 		file_contents = readFile(|project://oxidize/src/test/input/| + file_name);
-	catch PathNotFound():
+	catch PathNotFound(file):
+		file_contents = "";
+	catch IO(msg):
 		file_contents = "";
 		
 	return file_contents;
