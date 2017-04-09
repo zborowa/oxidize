@@ -823,7 +823,7 @@ syntax Expression
 	| Macro_expression
 	| Path_expression "{" Structure_expression_fields "}"
 	| Expression "." Path_generic_args_with_colons
-	> Expression "." Literal_integer
+	//> left Expression "." Literal_integer
 	| Expression "[" Expression? "]"
 	| Expression "(" (Expressions ","?)? ")"
 	| "(" (Expressions ","?)? ")"
@@ -1175,7 +1175,7 @@ syntax Let
 
 /* #### #### Macros and misc. rules #### ####*/
 
-syntax Literal
+lexical Literal
 	= lit_byte:Literal_byte
 	| lit_char:Literal_char
 	| lit_integer:Literal_integer
@@ -1185,18 +1185,18 @@ syntax Literal
 	> String
 	;
 
-syntax String
+lexical String
 	= lit_str:Literal_string
 	| lit_str:Literal_string_raw
 	| lit_byte_str:Literal_byte_string
 	| lit_byte_str:Literal_byte_string_raw
 	;
 
-syntax Identifier
+lexical Identifier
 	= ident:Ident
 	;
 
-syntax Unpaired_token
+lexical Unpaired_token
 	= "\<\<"                        
 	| "\>\>"                        
 	| "\<="                         
