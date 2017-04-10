@@ -58,17 +58,8 @@ lexical Literal_integer
 	;
 
 lexical Literal_float 
-	= [0-9] [0-9 _]* [.] [0-9 _]* ([eE] [\- +]? [0-9 _]+)?
-	| [0-9] [0-9 _]* ([.] [0-9 _]*)? [eE] [\- +]? [0-9 _]+
+	= [0-9] [0-9 _]* "." ([0-9] [0-9 _]*)? ([eE] [\- +] [0-9] [0-9 _]*)?
 	;
-
-// ASCII representations of unicode ranges
-//ASC     [\x00-\x7f]
-//ASCN    [\x00-\t\v-\x7f]
-//U       [\x80-\xbf]
-//U2      [\xc2-\xdf]
-//U3      [\xe0-\xef]
-//U4      [\xf0-\xf4]
 
 lexical Literal_string
 	= "\"" StringChar* "\""

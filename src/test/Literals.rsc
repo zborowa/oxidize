@@ -48,6 +48,13 @@ test bool LiteralChar(){
 	return /amb(_) !:= parse_tree;
 }
 
+test bool LiteralFloat(){
+	str input_file = LoadFile("let_floats");
+	Tree parse_tree = parse(#Crate, input_file);
+	
+	return /amb(_) !:= parse_tree;
+}
+
 test bool GuessingGame(){
 	str input_file = LoadFile("guessing_game");
 	//Tree parse_tree = parse(Crate, input_file);
