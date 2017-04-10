@@ -45,11 +45,9 @@ lexical Literal_byte
 	;
 
 lexical Literal_char 
-	= "\'" [\\][nrt \\ \' \u0220] "\'" 
-	//| [\'][\u0000-\u00FF][\']
-	| "\'" [\u000000-\uFFFFFF] "\'"
-	| "\'" [.] "\'"
-	| "\'" [\u0080-\u00ff] "\'"
+	= "\'" "\\" UnicodeEscape "\'"
+	| "\'" ![\\ \' \n \t \r] "\'"
+	| "\'" [\ud800-\udbff] [\udc00-\udfff] "\'"
 	;
 
 lexical Literal_integer
