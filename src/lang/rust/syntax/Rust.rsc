@@ -76,7 +76,7 @@ lexical Literal_float
 lexical Literal_string
 	= [\"] [n \n r \r t \\ \u0027 \u0220]* [\"]
 	//| [\"][\u0000-\u00FF]*[\"] // Creates ambiguity but is stated in the Bison source
-	| [\"] [\u000000-\uFFFFFF]* [\"]
+	| [\"] [\u000000-\uFFFFFF !]* [\"]
 	| [\"] [^n \n r t \\ \u0027 \u0220]* [\"]
 	| [\"] ([.] | [\n])* [\"]
 	;
