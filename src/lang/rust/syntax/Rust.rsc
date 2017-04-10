@@ -12,7 +12,7 @@ layout Whitespace
 	;
 
 lexical WhiteSpaceOrComment
-	= [\ \t\r\n]
+	= [\ \t \r \n]
 	| Comment
 	;
 
@@ -39,19 +39,17 @@ lexical Ident
 	;
 
 lexical Literal_byte
-	= [b] [\'] [\\] [n r t \\ \' \u0220] [\']
-	| [b] [\'] [\a00-\a7f] [\']
-	| [b] [\'] [\u0000-\uFFF0] [\']
-	| [b] [\'] [\u00000000-\uFFFFFFFF] [\']
-	| [b] [\'] [.] [\']
+	= "b\'" "\\" [xX] Hexit Hexit "\'"
+	| "b\'" "\\" [n r t \\ \' \' 0] "\'"
+	| "b\'" ![\\ \' \n \r \t] [\udc00-\udfff]? "\'"
 	;
 
 lexical Literal_char 
-	= [\'][\\][nrt \\ \' \u0220][\'] 
+	= "\'" [\\][nrt \\ \' \u0220] "\'" 
 	//| [\'][\u0000-\u00FF][\']
-	| [\'][\u000000-\uFFFFFF][\']
-	| [\'][.][\']
-	| [\'][\u0080-\u00ff][\']
+	| "\'" [\u000000-\uFFFFFF] "\'"
+	| "\'" [.] "\'"
+	| "\'" [\u0080-\u00ff] "\'"
 	;
 
 lexical Literal_integer
@@ -76,35 +74,32 @@ lexical Literal_float
 //U4      [\xf0-\xf4]
 
 lexical Literal_string
-	//= [\"] [n \n r \r t \\ \u0027 \u0220]* [\"]
-	//| [\"] [\a00-\a7f]* [\"]
-	//| [\"] ("\\" [U] (("0" [0-9 A-F a-f]) | "10") [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f])* [\"]
-	//| [\"] [^n \n r t \\ \a27 \a220]* [\"]
-	//| [\"] ([.] | [\n])* [\"]
-	//= [\"] (![\"] | [\a00] | [\\]<<[\"])* [\"]
 	= "\"" StringChar* "\""
 	;
 
 lexical StringChar
-	// TODO: rust allows to escape the newline?
-	= "\\" [nrt\\\'\"0]
-	| "\\" [xX] [0-9 a-f A-F] [0-9 a-f A-F]
-	| UnicodeEscape
+	= UnicodeEscape
 	| [\a00] 
 	| "\\" [\n]
-	| "\\" [\r\n]
+	| "\\" [\r \n]
 	| ![\" \\]+ !>> ![\" \\]	
 	;
 	
+lexical Hexit
+	= [0-9 a-f A-F]
+	;
+	
 lexical UnicodeEscape
-	= "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] "}"
-	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] "}"
-	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]  "}"
-	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]  "}"
-	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F]  "}"
-	| "\\u{" [0-9 a-f A-F]  "}"
-	| "\\u" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]
-	| "\\U" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]
+	= "\\"   [n r t \\ \' \" 0]
+	| "\\"   [xX] [0-9 a-f A-F] [0-9 a-f A-F]
+	| "\\u{" Hexit Hexit Hexit Hexit Hexit Hexit "}"
+	| "\\u{" Hexit Hexit Hexit Hexit Hexit "}"
+	| "\\u{" Hexit Hexit Hexit Hexit  "}"
+	| "\\u{" Hexit Hexit Hexit  "}"
+	| "\\u{" Hexit Hexit  "}"
+	| "\\u{" Hexit  "}"
+	| "\\u"  Hexit Hexit Hexit Hexit
+	| "\\U"  Hexit Hexit Hexit Hexit Hexit Hexit Hexit Hexit
 	; 
 
 lexical Literal_string_raw 
@@ -116,15 +111,15 @@ lexical Literal_byte_string
 	;
 
 lexical Literal_byte_string_raw
-	= [b] [r] Literal_string
+	= [b] Literal_string_raw
 	;
 
 lexical Shebang 
-	= [#] [!]
+	= "#!"
 	;
 
 lexical Shebang_line 
-	= [#] [!] [^\n]*
+	= Shebang [^\n]*
 	;
 
 /* #### #### Items and attributes #### #### */
@@ -758,8 +753,8 @@ syntax Maybe_statements
 	;
 
 syntax Statements
-	= Statements:Statement+ statements
-	//| Statements:Statements Statement
+	= Statements:Statement statements
+	| Statements:Statements Statement
 	;
 
 syntax Statement
