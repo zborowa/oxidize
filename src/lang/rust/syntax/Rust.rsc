@@ -76,12 +76,36 @@ lexical Literal_float
 //U4      [\xf0-\xf4]
 
 lexical Literal_string
-	= [\"] [n \n r \r t \\ \u0027 \u0220]* [\"]
-	| [\"] [\a00-\a7f]* [\"]
-	| [\"] ("\\" [U] (("0" [0-9 A-F a-f]) | "10") [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f])* [\"]
-	| [\"] [^n \n r t \\ \a27 \a220]* [\"]
-	| [\"] ([.] | [\n])* [\"]
+	//= [\"] [n \n r \r t \\ \u0027 \u0220]* [\"]
+	//| [\"] [\a00-\a7f]* [\"]
+	//| [\"] ("\\" [U] (("0" [0-9 A-F a-f]) | "10") [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f])* [\"]
+	//| [\"] [^n \n r t \\ \a27 \a220]* [\"]
+	//| [\"] ([.] | [\n])* [\"]
+	//= [\"] (![\"] | [\a00] | [\\]<<[\"])* [\"]
+	= "\"" StringChar* "\""
 	;
+
+lexical StringChar
+	// TODO: rust allows to escape the newline?
+	= "\\" [nrt\\\'\"0]
+	| "\\" [xX] [0-9 a-f A-F] [0-9 a-f A-F]
+	| UnicodeEscape
+	| [\a00] 
+	| "\\" [\n]
+	| "\\" [\r\n]
+	| ![\" \\]+ !>> ![\" \\]	
+	;
+	
+lexical UnicodeEscape
+	= "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] "}"
+	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] "}"
+	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]  "}"
+	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]  "}"
+	| "\\u{" [0-9 a-f A-F] [0-9 a-f A-F]  "}"
+	| "\\u{" [0-9 a-f A-F]  "}"
+	| "\\u" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]
+	| "\\U" [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F] [0-9 a-f A-F]
+	; 
 
 lexical Literal_string_raw 
 	= [r] Literal_string
@@ -106,13 +130,12 @@ lexical Shebang_line
 /* #### #### Items and attributes #### #### */
 
 start syntax Crate
-	= crate:Shebang_line? Inner_attribute+ inner_attributes Mod_item? mod_idem
+	= crate:Shebang_line? Inner_attributes inner_attributes Mod_item? mod_idem
 	| crate:Shebang_line? Mod_item? mode_item
 	;
 	
 syntax Inner_attributes
-	= Inner_attribute
-	| Inner_attributes Inner_attribute
+	= Inner_attribute+
 	;
 
 syntax Inner_attribute
@@ -127,7 +150,7 @@ syntax Outer_attribute
 syntax Meta_item
 	= meta_word:Identifier identifier
 	| meta_name_value:Identifier identifier "=" Literal literal
-	| meta_list:Identifier identifier "(" {Meta_item ","}* meta_items ")"
+	| meta_list:Identifier identifier "(" {Meta_item ","}* meta_items ","? ")"
 	;
 
 syntax Attributes_and_vis
@@ -752,8 +775,7 @@ syntax Expressions
 	;
 
 syntax Path_expression
-	= Path_generic_args_with_colons
-	| "::" Path_generic_args_with_colons
+	= "::"? Path_generic_args_with_colons
 	| self_path:"self" "::" Path_generic_args_with_colons
 	;
 
@@ -775,7 +797,7 @@ syntax Nonblock_expression
 	| Macro_expression
 	| Path_expression "{" Structure_expression_fields "}"
 	| Nonblock_expression "." Path_generic_args_with_colons
-	| Nonblock_expression "." Literal_integer
+	//| Nonblock_expression "." Literal_integer
 	| Nonblock_expression "[" Expression? "]"
 	| Nonblock_expression "(" Expression? ")"
 	| "[" Vector_expression "]"
@@ -901,7 +923,7 @@ syntax Nonparen_expression
 	| Macro_expression
 	| Path_expression "{" Structure_expression_fields "}"
 	| Nonparen_expression "." Path_generic_args_with_colons
-	| Nonparen_expression "." Literal_integer
+	//| Nonparen_expression "." Literal_integer
 	| Nonparen_expression "[" Expression? "]"
 	| Nonparen_expression "(" (Expressions ","?)? ")"
 	| "[" Vector_expression "]"
@@ -963,7 +985,7 @@ syntax Expression_nostruct
 	| "self"
 	| Macro_expression
 	| Expression_nostruct "." Path_generic_args_with_colons
-	| Expression_nostruct "." Literal_integer
+	//| Expression_nostruct "." Literal_integer
 	| Expression_nostruct "[" Expression? "]"
 	| Expression_nostruct "(" (Expressions ","?)? ")"
 	| "[" Vector_expression "]"
