@@ -114,11 +114,13 @@ lexical Shebang_line
 
 start syntax Crate
 	= crate:Shebang_line? Inner_attributes inner_attributes Mod_item? mod_idem
-	| crate:Shebang_line? Mod_item? mode_item
+	| crate:Shebang_line? Mod_item* mode_item
 	;
 	
 syntax Inner_attributes
-	= Inner_attribute+
+	//= Inner_attribute+
+	= Inner_attribute
+	| Inner_attributes Inner_attribute
 	;
 
 syntax Inner_attribute
@@ -692,7 +694,9 @@ syntax Type_param
 	;
 
 syntax Bounds
-	= {Bound "+"}+
+	//= {Bound "+"}+
+	= Bound
+	| Bounds "+" Bound
 	;
 
 syntax Bound
@@ -741,7 +745,7 @@ syntax Maybe_statements
 	;
 
 syntax Statements
-	= Statements:Statement statements
+	= Statements:Statement
 	| Statements:Statements Statement
 	;
 
@@ -1139,8 +1143,8 @@ syntax Match_clause
 	;
 
 syntax Nonblock_match_clause
-	= Outer_attribute? {Pattrn "|"}+ Guard? "=\>" Nonblock_expression
-	| Outer_attribute? {Pattrn "|"}+ Guard? "=\>" Full_block_expression
+	= Outer_attribute*? {Pattern "|"}+ Guard? "=\>" Nonblock_expression
+	| Outer_attribute*? {Pattern "|"}+ Guard? "=\>" Full_block_expression
 	;
 
 syntax Block_match_clause
@@ -1317,12 +1321,13 @@ lexical Unpaired_token
 	;
 
 syntax Token_trees
-	= token_tree:Token_tree+ token_trees
-;
+	// TODO: Not sure about this one
+	= token_tree:Token_tree token_trees
+	;
 
 syntax Token_tree
 	= Delimited_token_trees
-	| tttok:Unpaired_token
+	| tttok:{Unpaired_token ","}*?
 	;
 
 syntax Delimited_token_trees
@@ -1336,9 +1341,9 @@ syntax Parens_delimited_token_trees
 	;
 
 syntax Braces_delimited_token_trees
-	= tttok:"{" Token_trees? "}"
+	= tttok:"{" Token_trees "}"
 	;
 
 syntax Brackets_delimited_token_trees
-	= tttok:"[" Token_trees? "]"
+	= tttok:"[" Token_trees "]"
 	;
