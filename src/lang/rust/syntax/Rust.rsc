@@ -51,11 +51,10 @@ lexical Literal_char
 	;
 
 lexical Literal_integer
-	= [0] [x] [0-9 a-f A-F _]+ 
-	| [0] [o] [0-8 _]+ 
-	| [0] [b] [01 _]+
-	| [0-9] [0-9 _]* !>> [0-9 _]
-	| [0-9] [0-9 _]* [.] ([.] | [a-z A-Z])
+	= [0-9][0-9 _]*
+	| "0b" [0 1 _]+
+	| "0o" [0-7 _]+
+	| "0x" [0-9 a-f A-F _]+
 	;
 
 lexical Literal_float 
