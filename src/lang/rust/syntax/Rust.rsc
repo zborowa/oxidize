@@ -31,15 +31,19 @@ keyword Rust_keywords
 
 // Identifier regex not to be confused with syntax Identifier present in the file
 lexical Ident
-	= ([a-z A-Z \u0080-\u00ff _][a-z A-Z 0-9 \u0080-\u00ff _]*) !>> [a-z A-Z 0-9 \u0080-\u00ff _] \ Rust_keywords
+	= 	(
+			[a-z A-Z \u0080-\u00ff _] !<< 
+			[a-z A-Z \u0080-\u00ff _] [a-z A-Z 0-9 \u0080-\u00ff _]* !>> 
+			[a-z A-Z 0-9 \u0080-\u00ff _]
+		) \ Rust_keywords
 	;
 
 lexical Literal_byte
-	= [b][\'][\\][nrt \\ \' \u0220][\']
-	//| [b][\'][\u0000-\u00FF][\'] // Could this be deleted becuase of the line under it?
-	//| [b][\'][\u0000-\uFFFF][\']
-	| [b][\'][\u00000000-\uFFFFFFFF][\']
-	| [b][\'][.][\']
+	= [b] [\'] [\\] [n r t \\ \' \u0220] [\']
+	| [b] [\'] [\a00-\a7f] [\']
+	| [b] [\'] [\u0000-\uFFF0] [\']
+	| [b] [\'] [\u00000000-\uFFFFFFFF] [\']
+	| [b] [\'] [.] [\']
 	;
 
 lexical Literal_char 
@@ -51,54 +55,52 @@ lexical Literal_char
 	;
 
 lexical Literal_integer
-	= [0][x][0-9 a-f A-F _]+ 
-	| [0][o][0-8 _]+ 
-	| [0][b][01 _]+
-	| [0-9][0-9 _]* !>> [0-9 _]
-	| [0-9][0-9 _]*[.]([.]|[a-z A-Z])
+	= [0] [x] [0-9 a-f A-F _]+ 
+	| [0] [o] [0-8 _]+ 
+	| [0] [b] [01 _]+
+	| [0-9] [0-9 _]* !>> [0-9 _]
+	| [0-9] [0-9 _]* [.] ([.] | [a-z A-Z])
 	;
 
 lexical Literal_float 
-	= [0-9][0-9 _]*[.][0-9 _]*([eE][\- +]?[0-9 _]+)?
-	| [0-9][0-9 _]*([.][0-9 _]*)?[eE][\- +]?[0-9 _]+
+	= [0-9] [0-9 _]* [.] [0-9 _]* ([eE] [\- +]? [0-9 _]+)?
+	| [0-9] [0-9 _]* ([.] [0-9 _]*)? [eE] [\- +]? [0-9 _]+
 	;
 
-//\x22                     { BEGIN(str); yymore(); }
-//<str>\x22                { BEGIN(suffix); return LIT_STR; }
-//
-//<str><<EOF>>                { return -1; }
-//<str>\\[n\nr\rt\\\x27\x220] { yymore(); }
-//<str>\\x[0-9a-fA-F]{2}      { yymore(); }
-//<str>\\u\{[0-9a-fA-F]?{6}\} { yymore(); }
-//<str>\\[^n\nrt\\\x27\x220]  { return -1; }
-//<str>(.|\n)                 { yymore(); }
+// ASCII representations of unicode ranges
+//ASC     [\x00-\x7f]
+//ASCN    [\x00-\t\v-\x7f]
+//U       [\x80-\xbf]
+//U2      [\xc2-\xdf]
+//U3      [\xe0-\xef]
+//U4      [\xf0-\xf4]
 
 lexical Literal_string
 	= [\"] [n \n r \r t \\ \u0027 \u0220]* [\"]
-	//| [\"][\u0000-\u00FF]*[\"] // Creates ambiguity but is stated in the Bison source
-	| [\"] [\u000000-\uFFFFFF !]* [\"]
-	| [\"] [^n \n r t \\ \u0027 \u0220]* [\"]
+	| [\"] [\a00-\a7f]* [\"]
+	| [\"] ("\\" [U] (("0" [0-9 A-F a-f]) | "10") [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f] [0-9 A-F a-f])* [\"]
+	| [\"] [^n \n r t \\ \a27 \a220]* [\"]
 	| [\"] ([.] | [\n])* [\"]
 	;
 
 lexical Literal_string_raw 
-	= [r]Literal_string
+	= [r] Literal_string
 	;
 
 lexical Literal_byte_string 
-	= [b]Literal_string
+	= [b] Literal_string
 	;
 
 lexical Literal_byte_string_raw
-	= [b][r]Literal_string
+	= [b] [r] Literal_string
 	;
 
 lexical Shebang 
-	= [#][!]
+	= [#] [!]
 	;
 
 lexical Shebang_line 
-	= [#][!][^\n]*
+	= [#] [!] [^\n]*
 	;
 
 /* #### #### Items and attributes #### #### */
@@ -106,6 +108,11 @@ lexical Shebang_line
 start syntax Crate
 	= crate:Shebang_line? Inner_attribute+ inner_attributes Mod_item? mod_idem
 	| crate:Shebang_line? Mod_item? mode_item
+	;
+	
+syntax Inner_attributes
+	= Inner_attribute
+	| Inner_attributes Inner_attribute
 	;
 
 syntax Inner_attribute
@@ -281,7 +288,7 @@ syntax For_sized
 
 syntax Item_trait
 	= item_trait:"unsafe"? "trait" Identifier identifier Generic_params? generic_params For_sized? for_sized 
-		Type_param_bounds? bounds Where_clause? where "{" {Trait_item " "}+ trait_items "}"
+		Type_param_bounds? bounds Where_clause? where "{" Trait_item+ trait_items "}"
 	;
 
 syntax Trait_item
@@ -345,7 +352,7 @@ syntax Item_impl
 	;
 
 syntax Impl_items
-	= ImplItems:{Impl_item " "}+
+	= ImplItems:Impl_item+ impl_items
 	;
 
 syntax Impl_item
@@ -715,7 +722,7 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= "{" {Inner_attribute Whitespace}* Maybe_statements "}"
+	= "{" Inner_attributes? Maybe_statements? "}"
 	;
 
 syntax Block
@@ -728,19 +735,16 @@ syntax Maybe_statements
 	;
 
 syntax Statements
-	= Statements:{Statement Whitespace}+ statements
+	= Statements:Statement+ statements
+	//| Statements:Statements Statement
 	;
 
 syntax Statement
 	= Let
-	| Statement_item
-	| "pub" Statement_item
-	| Outer_attribute+ Statement_item
-	| Outer_attribute+ "pub" Statement_item
+	| Outer_attribute* "pub"? Statement_item
 	| Full_block_expression
 	| Block
-	| Nonblock_expression ";"
-	| ";"
+	| Nonblock_expression? ";"
 	;
 
 syntax Expressions
@@ -1121,7 +1125,7 @@ syntax Expression_match
 	;
 
 syntax Match_clauses
-	= {Match_clause " "}+
+	= match_clause:Match_clause+ match_clauses
 	;
 
 syntax Match_clause
@@ -1180,7 +1184,7 @@ syntax Label
 	;
 
 syntax Let
-	= "let" Pattern Type_ascription? Init_expression? ";"
+	= "let" Pattern pattern Type_ascription? type Init_expression? expression ";"
 	;
 
 /* #### #### Macros and misc. rules #### ####*/
@@ -1308,7 +1312,7 @@ lexical Unpaired_token
 	;
 
 syntax Token_trees
-	= {Token_tree " "}+
+	= token_tree:Token_tree+ token_trees
 ;
 
 syntax Token_tree
