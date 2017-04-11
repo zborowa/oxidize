@@ -32,7 +32,7 @@ keyword Rust_keywords
 // Identifier regex not to be confused with syntax Identifier present in the file
 lexical Ident
 	= 	(
-			[a-z A-Z \u0080-\u00ff _] !<< 
+			[a-z A-Z 0-9 \u0080-\u00ff _] !<< 
 			[a-z A-Z \u0080-\u00ff _] [a-z A-Z 0-9 \u0080-\u00ff _]* !>> 
 			[a-z A-Z 0-9 \u0080-\u00ff _]
 		) \ Rust_keywords
@@ -523,16 +523,16 @@ syntax Type_sums_and_or_bindings
 /* #### #### Patterns #### #### */
 
 syntax Pattern
-	= "_"
-	| "&" "mut"? Pattern
+	= //"_"
+	 "&" "mut"? Pattern
 	| "&&" Pattern
 	| "(" {Pattern ","}+? ")"
-	| "(" {Pattern ","}+ "," ")"
+	| "(" {Pattern ","}+? "," ")"
 	| "[" Pattern_vector? "]"
 	| Literal_or_path ("..." Literal_or_path)?
 	| Path_expression "{" Pattern_structure "}"
 	| Path_expression "(" ".." ")"
-	| Path_expression "(" {Pattern ","}+ ")"
+	| Path_expression "(" {Pattern ","}+? ")"
 	| Path_expression "!" Identifier? Delimited_token_trees
 	| Binding_mode Identifier
 	| Binding_mode? Identifier "@" Pattern
@@ -1127,14 +1127,11 @@ syntax Full_block_expression
 	;
 
 syntax Expression_match
-	= "match" Expression_nostruct "{" "}"
-	| "match" Expression_nostruct "{" Match_clauses "}"
-	| "match" Expression_nostruct "{" Match_clauses Nonblock_match_clause "}"
-	| "match" Expression_nostruct "{" Nonblock_match_clause"}"
+	= "match" Expression_nostruct "{" Match_clauses? Nonblock_match_clause? "}"
 	;
 
 syntax Match_clauses
-	= match_clause:Match_clause+ match_clauses
+	= match_clause:Match_clause+? match_clauses
 	;
 
 syntax Match_clause
@@ -1143,12 +1140,12 @@ syntax Match_clause
 	;
 
 syntax Nonblock_match_clause
-	= Outer_attribute*? {Pattern "|"}+ Guard? "=\>" Nonblock_expression
-	| Outer_attribute*? {Pattern "|"}+ Guard? "=\>" Full_block_expression
+	= Outer_attribute* {Pattern "|"}+ Guard? "=\>" Nonblock_expression
+	| Outer_attribute* {Pattern "|"}+ Guard? "=\>" Full_block_expression
 	;
 
 syntax Block_match_clause
-	= Outer_attribute? {Pattrn "|"}+ Guard? "=\>" Block
+	= Outer_attribute* {Pattern "|"}+ Guard? "=\>" Block
 	;
 
 syntax Guard
