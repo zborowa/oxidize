@@ -318,7 +318,7 @@ syntax Trait_method
 	= required:Attributes_and_vis "unsafe"? ("extern" String?)? "fn" 
 		Identifier Generic_params? Fn_decl_with_self_allow_anon_params Where_clause? ";"
 	| provided:Attributes_and_vis "unsafe"? ("extern" String?)? "fn" 
-		Identifier Generic_params? Fn_decl_with_self_allow_anon_params Maybe_where_claus Inner_attributes_and_block
+		Identifier Generic_params? Fn_decl_with_self_allow_anon_params Where_clause? Inner_attributes_and_block
 	;
 
 /*
@@ -495,8 +495,7 @@ syntax Path_no_types_allowed
 	;
 
 syntax Path_generic_args_without_colons
-	= components:(Path_generic_args_without_colons "::")? Identifier
-	| components:(Path_generic_args_without_colons "::")? Identifier Generic_args
+	= components:(Path_generic_args_without_colons "::")? Identifier Generic_args?
 	| components:(Path_generic_args_without_colons "::")? Identifier "(" {Type_sums ","}* ")" Ret_type
 	;
 
@@ -594,7 +593,7 @@ syntax Type
 
 syntax Type_primitive
 	= Path_generic_args_without_colons
-	| "::" Path_Generic_args_without_colons
+	| "::" Path_generic_args_without_colons
 	| "self" "::" Path_generic_args_without_colons
 	| "Box" Type
 	| "*" ("mut" | "const")? Type
@@ -608,7 +607,7 @@ syntax Type_primitive
 	| "[" Type "," ".." Expression"]"
 	| "[" Type ";" Expression "]"
 	| "typeof" "(" Expression ")"
-	| "_"
+	//| "_"
 	| Type_bare_fn
 	| Type_proc
 	| For_in_type
@@ -671,8 +670,9 @@ syntax Maybe_type_param_bounds
 	;
 
 syntax Bounds_sequence
-	= Poly_bound
-	| Bound_sequences "+" Poly_bound
+	//= Poly_bound
+	//| Bounds_sequences "+" Poly_bound
+	= {Poly_bound "+"}+
 	;
 
 syntax Poly_bound

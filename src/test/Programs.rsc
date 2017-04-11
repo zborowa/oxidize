@@ -13,3 +13,11 @@ test bool GuessingGame(){
 	
 	return /amb(_) !:= parse_tree;
 }
+
+test bool RustMain(){
+	str input_file = LoadFile("rust_main");
+	renderParsetree(parse(#Crate, input_file, allowAmbiguity=true));
+	Tree parse_tree = parse(#Crate, input_file, allowAmbiguity=true);
+	
+	return /amb(_) !:= parse_tree;
+}

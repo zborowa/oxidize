@@ -9,7 +9,7 @@ import vis::ParseTree;
 
 // Custom libraries
 import lang::rust::\syntax::Rust;
-import \test::func::LoadFile;
+//import \test::func::LoadFile;
 
 //
 //lexical Aas = [a-z]+ !>> [a-z];
@@ -23,6 +23,48 @@ import \test::func::LoadFile;
 
 // TODO: if (/amb(_) := t) { do your thing; } check in a loop if all std of Rust are parsable
 
-public void main(list[str] param = []){
+public void main(){
+	list[loc] files = Walk(|project://oxidize/rust|, ".rs");
+	ParseStats(files);
+}
+
+public list[loc] Walk(loc a, str pattern){
+	list[loc] files = [];
+
+	for (entry <- listEntries(a)){
+		if(endsWith(entry, pattern)){
+			files += (a+entry);
+		}elseif(isDirectory(a+entry)){
+			files += Walk(a+entry, pattern);
+		}
+	}
+			
+	return files;
+}
+
+public void ParseStats(list[loc] files){
+	list[loc] parsed = [];
+	list[loc] failed = [];
+	list[loc] amb = [];
+
+	for(file <- files){
+		str input_file = readFile(file);
+		//println(file);
+		
+		try{
+			Tree parse_tree = parse(#Crate, input_file);
+			parsed += file;
+			
+			if(/amb(_) := parse_tree){
+				amb += file;
+			}
+		}catch ParseError(location):
+			println("<file>");
+			failed += file;
+	}
 	
+	println("Total files: 	<size(files)>");
+	println("Parsed: 	<size(parsed)>");
+	println("Failed: 	<size(failed)>");
+	println("Amb: 		<size(amb)>");
 }
