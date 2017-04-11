@@ -55,12 +55,3 @@ test bool LiteralFloat(){
 	
 	return /amb(_) !:= parse_tree;
 }
-
-test bool GuessingGame(){
-	str input_file = LoadFile("guessing_game");
-	renderParsetree([start[Crate]]input_file);
-	Tree parse_tree = parse(#Crate, input_file, allowAmbiguity=true);
-	iprintln(diagnose(parse(#Crate, input_file, allowAmbiguity=true)));
-	
-	return /amb(_) !:= parse_tree;
-}
