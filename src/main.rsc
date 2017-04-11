@@ -21,8 +21,8 @@ import \test::func::LoadFile;
 //
 //layout L = [\ ]*;
 
+// TODO: if (/amb(_) := t) { do your thing; } check in a loop if all std of Rust are parsable
+
 public void main(list[str] param = []){
-	str rust_file = LoadFile("let_integers");
-	renderParsetree([start[Crate]]rust_file);
-	iprintln(diagnose([start[Crate]]rust_file));
+	
 }
