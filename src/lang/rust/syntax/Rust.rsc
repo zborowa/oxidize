@@ -106,21 +106,19 @@ lexical Shebang
 	= "#!"
 	;
 
-lexical Shebang_line 
-	= Shebang [^\n]*
+lexical Shebang_line
+	// Treat shebangs as a comment: https://github.com/rust-lang/rust/issues/1772 
+	= Shebang ![\n]* !>> [\ \t\r \u00A0 \u1680 \u2000-\u200A \u202F \u205F \u3000] $
 	;
 
 /* #### #### Items and attributes #### #### */
 
 start syntax Crate
-	= crate:Shebang_line? Inner_attributes inner_attributes Mod_item? mod_idem
-	| crate:Shebang_line? Mod_item* mode_item
+	= crate:Shebang_line? Mod_item* mode_item
 	;
 	
 syntax Inner_attributes
-	//= Inner_attribute+
-	= Inner_attribute
-	| Inner_attributes Inner_attribute
+	= Inner_attribute+
 	;
 
 syntax Inner_attribute
