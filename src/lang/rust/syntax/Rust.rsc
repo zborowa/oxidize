@@ -1323,7 +1323,7 @@ syntax Token_trees
 
 syntax Token_tree
 	= Delimited_token_trees
-	| tttok:{Unpaired_token ","}*?
+	| tttok:{Unpaired_token ","}*
 	;
 
 syntax Delimited_token_trees
