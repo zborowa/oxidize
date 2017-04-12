@@ -745,8 +745,7 @@ syntax Maybe_statements
 	;
 
 syntax Statements
-	= Statements:Statement
-	| Statements:Statements Statement
+	= Statement+
 	;
 
 syntax Statement
