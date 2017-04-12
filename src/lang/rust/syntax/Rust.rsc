@@ -606,6 +606,8 @@ syntax Type_primitive
 	| "[" Type ";" Expression "]"
 	| "typeof" "(" Expression ")"
 	//| "_"
+	// This is an experimental value ("!") only usable on Nightly
+	| "!"
 	| Type_bare_fn
 	| Type_proc
 	| For_in_type
