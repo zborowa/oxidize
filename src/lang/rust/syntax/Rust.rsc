@@ -999,7 +999,7 @@ syntax Expression_nostruct
 	| Expression_qualified_path
 	| Block_expression
 	| Block
-	| Nonblock_prefix_expression
+	| Nonblock_prefix_expression_nostruct
 	;
 
 syntax Nonblock_prefix_expression_nostruct
@@ -1062,8 +1062,8 @@ syntax Proc_expression_nostruct
 	;
 
 syntax Vector_expression
-	= {Expression ","}*
-	| {Expression ","}+ ";" Expression
+	= (Expressions ","?)?
+	| Expressions ";" Expression
 	;
 
 syntax Structure_expression_fields
