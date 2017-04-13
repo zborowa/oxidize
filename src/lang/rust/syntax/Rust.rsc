@@ -771,7 +771,7 @@ syntax Expression
 	| Expression "." Path_generic_args_with_colons
 	//> left Expression "." Literal_integer
 	| Expression "[" Expression? "]"
-	| Expression "(" (Expressions ","?)? ")"
+	| parenExprs: Expression "(" (Expressions ","?)? ")"
 	| "(" (Expressions ","?)? ")"
 	| "[" Vector_expression "]"
 	| "continue"
@@ -815,71 +815,11 @@ syntax Expression
 			)
 	| Expression? ".." Expression?
 	| Expression "as" Type
-	| "box" Nonparen_expression
+	| "box" Expression!parenExprs
 	> "box" "(" Expression? ")" Expression
 	| Expression_qualified_path
 	| blockExpr: Block_expression
 	| blockStmt: Block
-	| Nonblock_prefix_expression
-	;
-
-syntax Nonparen_expression
-	= Literal
-	> Path_expression
-	| "self"
-	| Macro_expression
-	| Path_expression "{" Structure_expression_fields "}"
-	| Nonparen_expression "." Path_generic_args_with_colons
-	//| Nonparen_expression "." Literal_integer
-	| Nonparen_expression "[" Expression? "]"
-	| Nonparen_expression "(" (Expressions ","?)? ")"
-	| "[" Vector_expression "]"
-	| "continue"
-	| "continue" Identifier
-	| "return"
-	| "return" Expression
-	| "break"
-	| "break" Identifier
-	> left  ( Nonparen_expression "*" Nonparen_expression
-			| Nonparen_expression "/" Nonparen_expression
-			| Nonparen_expression "%" Nonparen_expression
-			)
-	> left  ( Nonparen_expression "+" Nonparen_expression
-			| Nonparen_expression "-" Nonparen_expression
-			> Nonparen_expression "\<\<" Nonparen_expression
-			| Nonparen_expression "\>\>" Nonparen_expression
-			> Nonparen_expression "&" Nonparen_expression
-			> Nonparen_expression "^" Nonparen_expression
-			> Nonparen_expression "|" Nonparen_expression
-			> Nonparen_expression "\<" Nonparen_expression
-			| Nonparen_expression "\>" Nonparen_expression
-			| Nonparen_expression "\<=" Nonparen_expression
-			| Nonparen_expression "\>=" Nonparen_expression
-			> Nonparen_expression "==" Nonparen_expression
-			| Nonparen_expression "!=" Nonparen_expression
-			> Nonparen_expression "||" Nonparen_expression
-			> Nonparen_expression "&&" Nonparen_expression
-			)
-	> right Nonparen_expression "\<-" Nonparen_expression
-	> right ( Nonparen_expression "=" Nonparen_expression
-			| Nonparen_expression "\<\<=" Nonparen_expression
-			| Nonparen_expression "\>\>=" Nonparen_expression
-			| Nonparen_expression "-=" Nonparen_expression
-			| Nonparen_expression "&=" Nonparen_expression
-			| Nonparen_expression "|=" Nonparen_expression
-			| Nonparen_expression "+=" Nonparen_expression
-			| Nonparen_expression "*=" Nonparen_expression
-			| Nonparen_expression "/=" Nonparen_expression
-			| Nonparen_expression "^=" Nonparen_expression
-			| Nonparen_expression "%=" Nonparen_expression
-			)
-	| Nonparen_expression? ".." Nonparen_expression?
-	| Nonparen_expression "as" Type
-	| "box" Nonparen_expression
-	> "box" "(" Expression? ")" Expression
-	| Expression_qualified_path
-	| Block_expression
-	| Block
 	| Nonblock_prefix_expression
 	;
 
