@@ -726,8 +726,8 @@ syntax Block
 	;
 
 syntax Maybe_statements
-	= Statements Nonblock_expression?
-	| Nonblock_expression
+	= Statements Expression!blockExpr!blockStmt?
+	| Expression!blockExpr!blockStmt
 	;
 
 syntax Statements
@@ -739,7 +739,7 @@ syntax Statement
 	| Outer_attribute* "pub"? Statement_item
 	| Full_block_expression
 	| Block
-	| Nonblock_expression? ";"
+	| Expression!blockExpr!blockStmt? ";"
 	;
 
 syntax Expressions
@@ -760,65 +760,6 @@ syntax Path_generic_args_with_colons
 syntax Macro_expression
 	= Path_expression "!" Identifier? Parens_delimited_token_trees
 	| Path_expression "!" Identifier? Brackets_delimited_token_trees
-	;
-
-syntax Nonblock_expression
-	= Literal
-	> Path_expression
-	| "self"
-	| Macro_expression
-	| Path_expression "{" Structure_expression_fields "}"
-	| Nonblock_expression "." Path_generic_args_with_colons
-	//| Nonblock_expression "." Literal_integer
-	| Nonblock_expression "[" Expression? "]"
-	| Nonblock_expression "(" (Expressions ","?)? ")"
-	| "[" Vector_expression "]"
-	| "(" (Expressions ","?)? ")"
-	| "continue"
-	| "continue" Lifetime
-	| "return"
-	| "return" Expression
-	| "break"
-	| "break" Lifetime
-	> left  ( Nonblock_expression "*" Expression
-			| Nonblock_expression "/" Expression
-			| Nonblock_expression "%" Expression
-			)
-	> left  ( Nonblock_expression "+" Expression
-			| Nonblock_expression "-" Expression
-			> Nonblock_expression "\<\<" Expression
-			| Nonblock_expression "\>\>" Expression
-			> Nonblock_expression "&" Expression
-			> Nonblock_expression "^" Expression
-			> Nonblock_expression "|" Expression
-			> Nonblock_expression "\<" Expression
-			| Nonblock_expression "\>" Expression
-			| Nonblock_expression "\<=" Expression
-			| Nonblock_expression "\>=" Expression
-			> Nonblock_expression "==" Expression
-			| Nonblock_expression "!=" Expression
-			> Nonblock_expression "||" Expression
-			> Nonblock_expression "&&" Expression
-			)
-	> right Nonblock_expression "\<-" Expression
-	> right ( Nonblock_expression "=" Expression
-			| Nonblock_expression "\<\<=" Expression
-			| Nonblock_expression "\>\>=" Expression
-			| Nonblock_expression "-=" Expression
-			| Nonblock_expression "&=" Expression
-			| Nonblock_expression "|=" Expression
-			| Nonblock_expression "+=" Expression
-			| Nonblock_expression "*=" Expression
-			| Nonblock_expression "/=" Expression
-			| Nonblock_expression "^=" Expression
-			| Nonblock_expression "%=" Expression
-			)
-	| Nonblock_expression? ".." Expression?
-	| Nonblock_expression "as" Type
-	| "box" Nonparen_expression
-	> "box" "(" Expression? ")" Nonblock_expression
-	| Expression_qualified_path
-	| Nonblock_prefix_expression
 	;
 
 syntax Expression
@@ -877,8 +818,8 @@ syntax Expression
 	| "box" Nonparen_expression
 	> "box" "(" Expression? ")" Expression
 	| Expression_qualified_path
-	| Block_expression
-	| Block
+	| blockExpr: Block_expression
+	| blockStmt: Block
 	| Nonblock_prefix_expression
 	;
 
@@ -1113,7 +1054,7 @@ syntax Match_clause
 	;
 
 syntax Nonblock_match_clause
-	= Outer_attribute* {Pattern "|"}+ Guard? "=\>" Nonblock_expression
+	= Outer_attribute* {Pattern "|"}+ Guard? "=\>" Expression!blockExpr!blockStmt
 	| Outer_attribute* {Pattern "|"}+ Guard? "=\>" Full_block_expression
 	;
 
