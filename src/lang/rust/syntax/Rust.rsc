@@ -177,30 +177,22 @@ syntax Item_macro
 syntax View_item
 	= Use_item
 	| Extern_fn_item
-	| view_item_extern_crate:"extern" "crate" Identifier identifier ";"
-	| view_item_extern_crate:"extern" "crate" Identifier identifier "as" Identifier as ";"
-	;
-
-syntax Use_item
-	= view_item_use:"use" View_path view_path ";"
+	| view_item_extern_crate:"extern" "crate" Identifier identifier ("as" Identifier as)? ";"
 	;
 
 syntax Extern_fn_item 
 	= view_item_extern_fn:"extern" String? abi Item_fn item_fn
 	;
 
+syntax Use_item
+	= view_item_use:"use" View_path view_path ";"
+	;
+
 syntax View_path
 	= view_path_simple:Path_no_types_allowed
-	| view_path_list:Path_no_types_allowed "::" "{" "}"
-	| view_path_list:"::" "{" "}"
-	| view_path_list:Path_no_types_allowed "::" "{" Identifiers_or_self "}"
-	| view_path_list:"::" "{" Identifiers_or_self "}"
-	| view_path_list:Path_no_types_allowed "::" "{" Identifiers_or_self "," "}"
-	| view_path_list:"::" "{" Identifiers_or_self "}"
-	| view_path_glob:Path_no_types_allowed "::" "*"
-	| view_path_list_empty:"{" "}"
-	| view_path_list:"{" Identifiers_or_self "}"
-	| view_path_list:"{" Identifiers_or_self "," "}"
+	| view_path_list:Path_no_types_allowed? "::" "{" (Identifiers_or_self ","?)? "}"
+	| view_path_glob:Path_no_types_allowed  "::" "*"
+	| view_path_list_empty:						 "{" (Identifiers_or_self ","?)? "}"
 	| view_path_simple:Path_no_types_allowed "as" Identifier
 	;
 
@@ -549,18 +541,12 @@ syntax Literal_or_path
 	;
 
 syntax Pattern_field
-	= Identifier
-	| Binding_mode Identifier
-	| "box" Identifier
-	| "box" Binding_mode Identifier
-	| Identifier ":" Pattern
-	| Binding_mode Identifier ":" Pattern
+	= "box"? Binding_mode? Identifier
+	| Binding_mode? Identifier ":" Pattern
 	;
 
 syntax Pattern_structure
-	= {Pattern_field ","}+
-	| {Pattern_field ","}+ ","
-	| {Pattern_field ","}+ "," ".."
+	= {Pattern_field ","}+ ("," ".."?)?
 	| ".."
 	;
 
@@ -785,9 +771,9 @@ syntax Nonblock_expression
 	| Nonblock_expression "." Path_generic_args_with_colons
 	//| Nonblock_expression "." Literal_integer
 	| Nonblock_expression "[" Expression? "]"
-	| Nonblock_expression "(" Expression? ")"
+	| Nonblock_expression "(" (Expressions ","?)? ")"
 	| "[" Vector_expression "]"
-	| "(" Expression? ")"
+	| "(" (Expressions ","?)? ")"
 	| "continue"
 	| "continue" Lifetime
 	| "return"
@@ -827,10 +813,7 @@ syntax Nonblock_expression
 			| Nonblock_expression "^=" Expression
 			| Nonblock_expression "%=" Expression
 			)
-	| Nonblock_expression ".."
-	| Nonblock_expression ".." Expression
-	| ".." Expression
-	| ".."
+	| Nonblock_expression? ".." Expression?
 	| Nonblock_expression "as" Type
 	| "box" Nonparen_expression
 	> "box" "(" Expression? ")" Nonblock_expression
@@ -889,10 +872,7 @@ syntax Expression
 			| Expression "^=" Expression
 			| Expression "%=" Expression
 			)
-	| Expression ".."
-	| Expression ".." Expression
-	| ".." Expression
-	| ".."
+	| Expression? ".." Expression?
 	| Expression "as" Type
 	| "box" Nonparen_expression
 	> "box" "(" Expression? ")" Expression
@@ -952,10 +932,7 @@ syntax Nonparen_expression
 			| Nonparen_expression "^=" Nonparen_expression
 			| Nonparen_expression "%=" Nonparen_expression
 			)
-	| Nonparen_expression ".."
-	| Nonparen_expression ".." Nonparen_expression
-	| ".." Nonparen_expression
-	| ".."
+	| Nonparen_expression? ".." Nonparen_expression?
 	| Nonparen_expression "as" Type
 	| "box" Nonparen_expression
 	> "box" "(" Expression? ")" Expression
@@ -975,7 +952,7 @@ syntax Expression_nostruct
 	| Expression_nostruct "[" Expression? "]"
 	| Expression_nostruct "(" (Expressions ","?)? ")"
 	| "[" Vector_expression "]"
-	| "(" Expression? ")"
+	| "(" (Expressions ","?)? ")"
 	| "continue"
 	| "continue" Identifier
 	| "return"
@@ -1015,10 +992,7 @@ syntax Expression_nostruct
 			| Expression_nostruct "^=" Expression_nostruct
 			| Expression_nostruct "%=" Expression_nostruct
 			)
-	| Expression_nostruct ".."
-	| Expression_nostruct ".." Expression_nostruct
-	| ".." Expression_nostruct
-	| ".."
+	| Expression_nostruct? ".." Expression_nostruct?
 	| Expression_nostruct "as" Type
 	| "box" Expression_nostruct
 	> "box" "(" Expression? ")" Expression_nostruct
