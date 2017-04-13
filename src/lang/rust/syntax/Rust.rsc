@@ -767,7 +767,7 @@ syntax Expression
 	> Path_expression
 	| "self"
 	| Macro_expression
-	| Path_expression "{" Structure_expression_fields "}"
+	| pathStruct: Path_expression "{" Structure_expression_fields "}"
 	| Expression "." Path_generic_args_with_colons
 	//> left Expression "." Literal_integer
 	| Expression "[" Expression? "]"
@@ -821,74 +821,15 @@ syntax Expression
 	| blockExpr: Block_expression
 	| blockStmt: Block
 	| Nonblock_prefix_expression
-	;
-
-syntax Expression_nostruct
-	= Literal
-	> Path_expression
-	| "self"
-	| Macro_expression
-	| Expression_nostruct "." Path_generic_args_with_colons
-	//| Expression_nostruct "." Literal_integer
-	| Expression_nostruct "[" Expression? "]"
-	| Expression_nostruct "(" (Expressions ","?)? ")"
-	| "[" Vector_expression "]"
-	| "(" (Expressions ","?)? ")"
-	| "continue"
-	| "continue" Identifier
-	| "return"
-	| "return" Expression
-	| "break"
-	| "break" Identifier
-	> left  ( Expression_nostruct "*" Expression_nostruct
-			| Expression_nostruct "/" Expression_nostruct
-			| Expression_nostruct "%" Expression_nostruct
-			)
-	> left  ( Expression_nostruct "+" Expression_nostruct
-			| Expression_nostruct "-" Expression_nostruct
-			> Expression_nostruct "\<\<" Expression_nostruct
-			| Expression_nostruct "\>\>" Expression_nostruct
-			> Expression_nostruct "&" Expression_nostruct
-			> Expression_nostruct "^" Expression_nostruct
-			> Expression_nostruct "|" Expression_nostruct
-			> Expression_nostruct "\<" Expression_nostruct
-			| Expression_nostruct "\>" Expression_nostruct
-			| Expression_nostruct "\<=" Expression_nostruct
-			| Expression_nostruct "\>=" Expression_nostruct
-			> Expression_nostruct "==" Expression_nostruct
-			| Expression_nostruct "!=" Expression_nostruct
-			> Expression_nostruct "||" Expression_nostruct
-			> Expression_nostruct "&&" Expression_nostruct
-			)
-	> right Expression_nostruct "\<-" Expression_nostruct
-	> right ( Expression_nostruct "=" Expression_nostruct
-			| Expression_nostruct "\<\<=" Expression_nostruct
-			| Expression_nostruct "\>\>=" Expression_nostruct
-			| Expression_nostruct "-=" Expression_nostruct
-			| Expression_nostruct "&=" Expression_nostruct
-			| Expression_nostruct "|=" Expression_nostruct
-			| Expression_nostruct "+=" Expression_nostruct
-			| Expression_nostruct "*=" Expression_nostruct
-			| Expression_nostruct "/=" Expression_nostruct
-			| Expression_nostruct "^=" Expression_nostruct
-			| Expression_nostruct "%=" Expression_nostruct
-			)
-	| Expression_nostruct? ".." Expression_nostruct?
-	| Expression_nostruct "as" Type
-	| "box" Expression_nostruct
-	> "box" "(" Expression? ")" Expression_nostruct
-	| Expression_qualified_path
-	| Block_expression
-	| Block
-	| Nonblock_prefix_expression_nostruct
+	> Nonblock_prefix_expression_nostruct
 	;
 
 syntax Nonblock_prefix_expression_nostruct
-	= "-" Expression_nostruct
-	| "!" Expression_nostruct
-	| "*" Expression_nostruct
-	| "&" "mut"? Expression_nostruct
-	| "&&" "mut"? Expression_nostruct
+	= "-" Expression!pathStruct
+	| "!" Expression!pathStruct
+	| "*" Expression!pathStruct
+	| "&" "mut"? Expression!pathStruct
+	| "&&" "mut"? Expression!pathStruct
 	| Lambda_expression_nostruct
 	| "move" Lambda_expression_nostruct
 	| Proc_expression_nostruct
@@ -927,11 +868,11 @@ syntax Lambda_expression
 	;
 
 syntax Lambda_expression_nostruct
-	= "||" Ret_type Expression_nostruct
-	| "|" (("&" "mut"?)? ":")? "|" Ret_type Expression_nostruct
-	| "|" Inferrable_params "|" Ret_type Expression_nostruct
-	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type Expression_nostruct
-	| "|" ":" Inferrable_params "|" Ret_type Expression_nostruct
+	= "||" Ret_type Expression!pathStruct
+	| "|" (("&" "mut"?)? ":")? "|" Ret_type Expression!pathStruct
+	| "|" Inferrable_params "|" Ret_type Expression!pathStruct
+	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type Expression!pathStruct
+	| "|" ":" Inferrable_params "|" Ret_type Expression!pathStruct
 	;
 
 syntax Proc_expression
@@ -939,7 +880,7 @@ syntax Proc_expression
 	;
 
 syntax Proc_expression_nostruct
-	= "proc" "(" Inferrable_params? ")" Expression_nostruct
+	= "proc" "(" Inferrable_params? ")" Expression!pathStruct
 	;
 
 syntax Vector_expression
@@ -981,7 +922,7 @@ syntax Full_block_expression
 	;
 
 syntax Expression_match
-	= "match" Expression_nostruct "{" Match_clauses? Nonblock_match_clause? "}"
+	= "match" Expression!pathStruct "{" Match_clauses? Nonblock_match_clause? "}"
 	;
 
 syntax Match_clauses
@@ -1003,17 +944,17 @@ syntax Block_match_clause
 	;
 
 syntax Guard
-	= "if" Expression_nostruct
+	= "if" Expression!pathStruct
 	;
 
 syntax Expression_if
-	= "if" Expression_nostruct Block
-	| "if" Expression_nostruct Block "else" Block_or_if
+	= "if" Expression!pathStruct Block
+	| "if" Expression!pathStruct Block "else" Block_or_if
 	;
 
 syntax Expression_if_let
-	= "if" "let" Pattern "=" Expression_nostruct Block
-	| "if" "let" Pattern "=" Expression_nostruct Block "else" Block_or_if
+	= "if" "let" Pattern "=" Expression!pathStruct Block
+	| "if" "let" Pattern "=" Expression!pathStruct Block "else" Block_or_if
 	;
 
 syntax Block_or_if
@@ -1024,11 +965,11 @@ syntax Block_or_if
 
 
 syntax Expression_while
-	= Label? "while" Expression_nostruct Block
+	= Label? "while" Expression!pathStruct Block
 	;
 
 syntax Expression_while_let
-	= Label? "while" "let" Pattern "=" Expression_nostruct Block
+	= Label? "while" "let" Pattern "=" Expression!pathStruct Block
 	;
 
 syntax Expression_loop
@@ -1036,7 +977,7 @@ syntax Expression_loop
 	;
 
 syntax Expression_for
-	= Label? "for" Pattern "in" Expression_nostruct Block
+	= Label? "for" Pattern "in" Expression!pathStruct Block
 	;
 
 syntax Label
