@@ -49,19 +49,19 @@ public void ParseStats(list[loc] files){
 
 	for(file <- files){
 		str input_file = readFile(file);
-		//println(file);
 		
 		try{
-			Tree parse_tree = parse(#Crate, input_file);
+			Tree parse_tree = [start[Crate]]input_file;
 			parsed += file;
 			
 			if(/amb(_) := parse_tree){
 				amb += file;
 			}
-		}catch ParseError(location):
-			println("<file>");
+		}catch ParseError(_):
 			failed += file;
 	}
+	
+	iprintln(take(4, failed));
 	
 	println("Total files: 	<size(files)>");
 	println("Parsed: 	<size(parsed)>");
