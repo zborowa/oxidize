@@ -16,8 +16,42 @@ test bool GuessingGame(){
 
 test bool RustMain(){
 	str input_file = LoadFile("rust_main");
-	renderParsetree(parse(#Crate, input_file, allowAmbiguity=true));
 	Tree parse_tree = parse(#Crate, input_file, allowAmbiguity=true);
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool EmptyFunction(){
+	str input_file = LoadFile("fn_main");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool AdjustNever(){
+	str input_file = LoadFile("adjust_never");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool BootstrapMain(){
+	str input_file = LoadFile("bootstrap_main");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool Metadata(){
+	str input_file = LoadFile("metadata");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool Install(){
+	str input_file = LoadFile("install");
+	Tree parse_tree = [start[Crate]]input_file;
 	
 	return /amb(_) !:= parse_tree;
 }
