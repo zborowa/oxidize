@@ -763,23 +763,22 @@ syntax Macro_expression
 	;
 
 syntax Expression
-	= Literal
-	> Path_expression
-	| "self"
-	| Macro_expression
-	| pathStruct: Path_expression "{" Structure_expression_fields "}"
-	| Expression "." Path_generic_args_with_colons
-	//> left Expression "." Literal_integer
-	| Expression "[" Expression? "]"
-	| parenExprs: Expression "(" (Expressions ","?)? ")"
-	| "(" (Expressions ","?)? ")"
-	| "[" Vector_expression "]"
-	| "continue"
-	| "continue" Identifier
-	| "return"
-	| "return" Expression
-	| "break"
-	| "break" Identifier
+	= right ( "-" Expression
+			| "!" Expression
+			| "*" Expression
+			| "&" "mut"? Expression
+			| "&&" "mut"? Expression
+			| "move"? Lambda_expression
+			)
+	| procExpr: "proc" "(" Inferrable_params? ")" Expression
+	| blockStmt: Block
+	| blockExpr: Block_expression
+	| Expression_qualified_path
+	> right ( "box" "(" Expression? ")" Expression
+			| "box" Expression!parenExprs
+			)
+	| right Expression "as" Type 
+	| non-assoc Expression? ".." Expression?
 	> left  ( Expression "*" Expression
 			| Expression "/" Expression
 			| Expression "%" Expression
@@ -813,37 +812,20 @@ syntax Expression
 			| Expression "^=" Expression
 			| Expression "%=" Expression
 			)
-	| Expression? ".." Expression?
-	| Expression "as" Type
-	| "box" Expression!parenExprs
-	> "box" "(" Expression? ")" Expression
-	| Expression_qualified_path
-	| blockExpr: Block_expression
-	| blockStmt: Block
-	| Nonblock_prefix_expression
-	> Nonblock_prefix_expression_nostruct
-	;
-
-syntax Nonblock_prefix_expression_nostruct
-	= "-" Expression!pathStruct
-	| "!" Expression!pathStruct
-	| "*" Expression!pathStruct
-	| "&" "mut"? Expression!pathStruct
-	| "&&" "mut"? Expression!pathStruct
-	| Lambda_expression_nostruct
-	| "move" Lambda_expression_nostruct
-	| Proc_expression_nostruct
-	;
-
-syntax Nonblock_prefix_expression
-	= "-" Expression
-	| "!" Expression
-	| "*" Expression
-	| "&" "mut"? Expression
-	| "&&" "mut"? Expression
-	| Lambda_expression
-	| "move" Lambda_expression
-	| Proc_expression
+	| "break" Identifier?
+	| non-assoc returnExpr: "return" Expression?
+	| "continue" Identifier?
+	> "[" Vector_expression "]"
+	| "(" (Expressions ","?)? ")"
+	> non-assoc parenExprs: Expression "(" (Expressions ","?)? ")"
+	| Expression "[" Expression? "]"
+	//> left Expression "." Literal_integer
+	> left exprPath: Expression "." Path_generic_args_with_colons
+	| pathStruct: Path_expression "{" Structure_expression_fields "}"
+	| Macro_expression
+	| "self"
+	> Path_expression
+	| Literal
 	;
 
 syntax Expression_qualified_path
@@ -873,10 +855,6 @@ syntax Lambda_expression_nostruct
 	| "|" Inferrable_params "|" Ret_type Expression!pathStruct
 	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type Expression!pathStruct
 	| "|" ":" Inferrable_params "|" Ret_type Expression!pathStruct
-	;
-
-syntax Proc_expression
-	= "proc" "(" Inferrable_params? ")" Expression
 	;
 
 syntax Proc_expression_nostruct
