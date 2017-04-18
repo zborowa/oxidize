@@ -1,19 +1,19 @@
-//#![deny(warnings)]
+#![deny(warnings)]
 
-//extern crate bootstrap;
+extern crate bootstrap;
 
-//use std::env;
+use std::env;
 
-//use bootstrap::{Flags, Config, Build};
+use bootstrap::{Flags, Config, Build};
 
 fn main() {
-//    let args = env::args().skip(1).collect::<Vec<_>>();
-//    let flags = Flags::parse(&args);
+    let args = env::args().skip(1).collect::<Vec<_>>();
+    let flags = Flags::parse(&args);
     let mut config = Config::parse(&flags.build, flags.config.clone());
 
-//    if std::fs::metadata("config.mk").is_ok() {
-//        config.update_with_config_mk();
-//    }
+    if std::fs::metadata("config.mk").is_ok() {
+        config.update_with_config_mk();
+    }
 
-//    Build::new(flags, config).build();
+    Build::new(flags, config).build();
 }

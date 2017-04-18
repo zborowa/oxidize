@@ -1,4 +1,5 @@
 module \test::Test
 
-extend \test::Literals;
-extend \test::Programs;
+// Ambiguity tests
+extend \test::ambiguity::Literals;
+extend \test::ambiguity::Programs;

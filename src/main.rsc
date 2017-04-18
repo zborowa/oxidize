@@ -61,7 +61,7 @@ public void ParseStats(list[loc] files){
 			failed += file;
 	}
 	
-	iprintln(take(4, failed));
+	iprintln(take(8, failed));
 	
 	println("Total files: 	<size(files)>");
 	println("Parsed: 	<size(parsed)>");

@@ -1,4 +1,4 @@
-module \test::Literals
+module \test::ambiguity::Literals
 
 import Prelude;
 import vis::ParseTree;

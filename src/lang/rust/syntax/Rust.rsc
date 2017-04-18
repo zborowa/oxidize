@@ -264,7 +264,7 @@ syntax Foreign_item
 	= foreign_item:Attributes_and_vis "static" "mut"? Identifier identifier 
 		":" Type type ";"
 	| foreign_item:Attributes_and_vis "unsafe"? "fn" Identifier identifier 
-		Generic_params? generic_params "(" Params? params ")" Ret_type Where_clause? where ";"
+		Generic_params? generic_params "(" Params? params ")" Ret_type? Where_clause? where ";"
 	;
 
 syntax Identifiers_or_self
@@ -332,13 +332,13 @@ syntax Impl_method
   
 syntax Item_impl
 	= item_impl:"unsafe"? "impl" Generic_params? 
-		Type_primitive_sum Where_clause? "{" Inner_attribute+ Impl_items? "}"
+		Type_primitive_sum Where_clause? "{" Inner_attribute* Impl_items? "}"
 	| item_impl:"unsafe"? "impl" Generic_params? 
-		"(" Type ")" Where_clause? "{" Inner_attribute+ Impl_items? "}"
+		"(" Type ")" Where_clause? "{" Inner_attribute* Impl_items? "}"
 	| item_impl:"unsafe"? "impl" Generic_params? 
-		Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute+ Impl_items? "}"
+		Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute* Impl_items? "}"
 	| item_impl_neg:"unsafe"? "impl" Generic_params? 
-		"!" Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute+ Impl_items? "}"
+		"!" Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute* Impl_items? "}"
 	| item_impl_default:"unsafe"? "impl" Generic_params? 
 		Trait_ref "for" ".." "{" "}"
 	| item_impl_default_neg:"unsafe"? "impl" Generic_params? 
@@ -375,11 +375,11 @@ syntax Fn_decl
 	;
 
 syntax Fn_decl_with_self
-	= fn_decl:Fn_params_with_self Ret_type
+	= fn_decl:Fn_params_with_self Ret_type?
 	;
 
 syntax Fn_decl_with_self_allow_anon_params
-	= fn_decl:Fn_anon_params_with_self Ret_type
+	= fn_decl:Fn_anon_params_with_self Ret_type?
 	;
 
 syntax Fn_params
@@ -482,7 +482,7 @@ syntax Path_no_types_allowed
 
 syntax Path_generic_args_without_colons
 	= components:(Path_generic_args_without_colons "::")? Identifier Generic_args?
-	| components:(Path_generic_args_without_colons "::")? Identifier "(" {Type_sums ","}* ")" Ret_type
+	| components:(Path_generic_args_without_colons "::")? Identifier "(" {Type_sums ","}* ")" Ret_type?
 	;
 
 syntax Generic_args
@@ -601,16 +601,16 @@ syntax Type_bare_fn
 	;
 
 syntax Type_fn_decl
-	= Generic_params? Fn_anon_params Ret_type
+	= Generic_params? Fn_anon_params Ret_type?
 	;
 
 syntax Type_closure
-	= "unsafe"? "|" Anon_params "|" (":" Bounds)? Ret_type
-	| "unsafe"? "||" (":" Bounds)? Ret_type
+	= "unsafe"? "|" Anon_params? "|" (":" Bounds)? Ret_type?
+	//| "unsafe"? "||" (":" Bounds)? Ret_type
 	;
 
 syntax Type_proc 
-	= "proc" Generic_params? Fn_params (":" Bounds)? Ret_type
+	= "proc" Generic_params? Fn_params (":" Bounds)? Ret_type?
 	;
 
 syntax For_in_type
@@ -818,7 +818,7 @@ syntax Expression
 	| Expression "[" Expression? "]"
 	//> left Expression "." Literal_integer
 	> left exprPath: Expression "." Path_generic_args_with_colons
-	| pathStruct: Path_expression "{" Structure_expression_fields "}"
+	| pathStruct: Path_expression "{" Struct_expression_fields? "}"
 	| Macro_expression
 	| "self"
 	> Path_expression
@@ -839,19 +839,19 @@ syntax Expression_qualified_path
 	;
 
 syntax Lambda_expression
-	= "||" Ret_type Expression
-	| "|" (("&" "mut"?)? ":")? "|" Ret_type Expression
-	| "|" Inferrable_params "|" Ret_type Expression
-	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type Expression
-	| "|" ":" Inferrable_params "|" Ret_type Expression
+	= "||" Ret_type? Expression
+	| "|" (("&" "mut"?)? ":")? "|" Ret_type? Expression
+	| "|" Inferrable_params "|" Ret_type? Expression
+	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type? Expression
+	| "|" ":" Inferrable_params "|" Ret_type? Expression
 	;
 
 syntax Lambda_expression_nostruct
-	= "||" Ret_type Expression!pathStruct
-	| "|" (("&" "mut"?)? ":")? "|" Ret_type Expression!pathStruct
-	| "|" Inferrable_params "|" Ret_type Expression!pathStruct
-	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type Expression!pathStruct
-	| "|" ":" Inferrable_params "|" Ret_type Expression!pathStruct
+	= "||" Ret_type? Expression!pathStruct
+	| "|" (("&" "mut"?)? ":")? "|" Ret_type? Expression!pathStruct
+	| "|" Inferrable_params "|" Ret_type? Expression!pathStruct
+	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type? Expression!pathStruct
+	| "|" ":" Inferrable_params "|" Ret_type? Expression!pathStruct
 	;
 
 syntax Proc_expression_nostruct
@@ -863,13 +863,9 @@ syntax Vector_expression
 	| Expressions ";" Expression
 	;
 
-syntax Structure_expression_fields
-	= Field_inits ","?
-	| {Field_inits ","}* ".." Expression
-	;
-
-syntax Field_inits
-	= {Field_init ","}+
+syntax Struct_expression_fields
+	= {Field_init ","}+ ","?
+	| {Field_init ","}* ","? ".." Expression
 	;
 
 syntax Field_init

@@ -1,4 +1,4 @@
-module \test::Programs
+module \test::ambiguity::Programs
 
 import Prelude;
 import vis::ParseTree;
@@ -51,6 +51,28 @@ test bool Metadata(){
 
 test bool Install(){
 	str input_file = LoadFile("install");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool Clean(){
+	str input_file = LoadFile("clean");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool Channel(){
+	str input_file = LoadFile("channel");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool Lib(){
+	str input_file = LoadFile("lib");
+	renderParsetree([start[Crate]]input_file);
 	Tree parse_tree = [start[Crate]]input_file;
 	
 	return /amb(_) !:= parse_tree;
