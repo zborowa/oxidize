@@ -211,10 +211,6 @@ syntax Type_ascription
 	= ":" Type_sum type_sum
 	;
 
-syntax Init_expression
-	= "=" Expression expression
-	;
-
 syntax Item_struct
 	= item_struct:"struct" Identifier identifier Generic_params? generic_params 
 		Where_clause? where Struct_decl_args
@@ -812,9 +808,10 @@ syntax Expression
 			| Expression "^=" Expression
 			| Expression "%=" Expression
 			)
-	| "break" Identifier?
-	| non-assoc returnExpr: "return" Expression?
-	| "continue" Identifier?
+	> right ( breakIdent: "break" Identifier?
+			| returnExpr: "return" Expression?
+			| contnIdent: "continue" Identifier?
+			)
 	> "[" Vector_expression "]"
 	| "(" (Expressions ","?)? ")"
 	> non-assoc parenExprs: Expression "(" (Expressions ","?)? ")"
@@ -943,27 +940,23 @@ syntax Block_or_if
 
 
 syntax Expression_while
-	= Label? "while" Expression!pathStruct Block
+	= (Lifetime ":")? "while" Expression!pathStruct Block
 	;
 
 syntax Expression_while_let
-	= Label? "while" "let" Pattern "=" Expression!pathStruct Block
+	= (Lifetime ":")? "while" "let" Pattern "=" Expression!pathStruct Block
 	;
 
 syntax Expression_loop
-	= Label? "loop" Block
+	= (Lifetime ":")? "loop" Block
 	;
 
 syntax Expression_for
-	= Label? "for" Pattern "in" Expression!pathStruct Block
-	;
-
-syntax Label
-	= Lifetime ":"
+	= (Lifetime ":")? "for" Pattern "in" Expression!pathStruct Block
 	;
 
 syntax Let
-	= "let" Pattern pattern Type_ascription? type Init_expression? expression ";"
+	= "let" Pattern pattern Type_ascription? type ("=" Expression expression)? ";"
 	;
 
 /* #### #### Macros and misc. rules #### ####*/
@@ -986,118 +979,114 @@ lexical String
 	;
 
 lexical Identifier
-	= ident:Ident
+	= ident: Ident
 	;
 
-lexical Unpaired_token
-	= "\<\<"                        
-	| "\>\>"                        
-	| "\<="                         
-	| "=="                       
-	| "!="                         
-	| "\>="                         
-	| "&&"                     
-	| "||"                       
-	| "\<-"                     
-	| "\<\<="                      
-	| "\>\>="                      
-	| "-="                    
-	| "&="                      
-	| "|="                       
-	| "+="                     
-	| "*="                     
-	| "/="                    
-	| "^="                    
-	| "%="                  
-	| ".."                     
-	| "..."                  
-	| "::"                    
-	| "-\>"                     
-	| "=\>"                  
-	| Literal_byte                   
-	| Literal_char                   
-	| Literal_integer                
-	| Literal_float                  
-	| Literal_string                    
-	| Literal_string_raw                
-	| Literal_byte_string               
-	| Literal_byte_string_raw           
-	| Identifier                      
-	| "_"                 
-	| "\""                   
-	| "self"                       
-	| "static"                     
-	| "as"                         
-	| "break"                      
-	| "crate"                      
-	| "else"                       
-	| "enum"                       
-	| "extern"                     
-	| "false"                      
-	| "fn"                         
-	| "for"                        
-	| "if"                         
-	| "impl"                       
-	| "in"                         
-	| "let"                        
-	| "loop"                       
-	| "match"                      
-	| "mod"                        
-	| "move"                       
-	| "mut"                        
-	| "priv"                       
-	| "pub"                        
-	| "ref"                        
-	| "return"                     
-	| "struct"                     
-	| "true"                       
-	| "trait"                      
-	| "type"                       
-	| "unsafe"                     
-	| "use"                        
-	| "while"                      
-	| "continue"                   
-	| "proc"                       
-	| "box"                        
-	| "const"                      
-	| "where"                      
-	| "typeof"                     
-	//| Inner_doc_comment       
-	//| Outer_doc_comment
-	| Comment          
-	| Shebang                    
-	| "\'static"            
-	| ";"                        
-	| ","                        
-	| "."                        
-	| "@"                        
-	| "#"                        
-	| "~"                        
-	| ":"                        
-	| "$"                        
-	| "="                        
-	| "?"                        
-	| "!"                        
-	| "\<"                        
-	| "\>"                        
-	| "-"                        
-	| "&"                        
-	| "|"                        
-	| "+"                        
-	| "*"                        
-	| "/"                        
-	| "^"                        
-	| "%"
-	;
-
-syntax Token_trees
-	// TODO: Not sure about this one
-	= token_tree:Token_tree token_trees
-	;
+// Have been replaced in the trees because of its 
+// incompletesness. The trees now use the Expression
+//lexical Unpaired_token
+//	= "\<\<"                        
+//	| "\>\>"                        
+//	| "\<="                         
+//	| "=="                       
+//	| "!="                         
+//	| "\>="                         
+//	| "&&"                     
+//	| "||"                       
+//	| "\<-"                     
+//	| "\<\<="                      
+//	| "\>\>="                      
+//	| "-="                    
+//	| "&="                      
+//	| "|="                       
+//	| "+="                     
+//	| "*="                     
+//	| "/="                    
+//	| "^="                    
+//	| "%="                  
+//	| ".."                     
+//	| "..."                  
+//	| "::"                    
+//	| "-\>"                     
+//	| "=\>"                  
+//	| Literal_byte                   
+//	| Literal_char                   
+//	| Literal_integer                
+//	| Literal_float                  
+//	| Literal_string                    
+//	| Literal_string_raw                
+//	| Literal_byte_string               
+//	| Literal_byte_string_raw           
+//	| Identifier
+//	| "_"                 
+//	| "\""                   
+//	| "self"                       
+//	| "static"                     
+//	| "as"                         
+//	| "break"                      
+//	| "crate"                      
+//	| "else"                       
+//	| "enum"                       
+//	| "extern"                     
+//	| "false"                      
+//	| "fn"                         
+//	| "for"                        
+//	| "if"                         
+//	| "impl"                       
+//	| "in"                         
+//	| "let"                        
+//	| "loop"                       
+//	| "match"                      
+//	| "mod"                        
+//	| "move"                       
+//	| "mut"                        
+//	| "priv"                       
+//	| "pub"                        
+//	| "ref"                        
+//	| "return"                     
+//	| "struct"                     
+//	| "true"                       
+//	| "trait"                      
+//	| "type"                       
+//	| "unsafe"                     
+//	| "use"                        
+//	| "while"                      
+//	| "continue"                   
+//	| "proc"                       
+//	| "box"                        
+//	| "const"                      
+//	| "where"                      
+//	| "typeof"                     
+//	| Comment          
+//	| Shebang                    
+//	| "\'static"            
+//	| ";"                        
+//	| ","                        
+//	| "."                        
+//	| "@"                        
+//	| "#"                        
+//	| "~"                        
+//	| ":"                        
+//	| "$"                        
+//	| "="                        
+//	| "?"                        
+//	| "!"                        
+//	| "\<"                        
+//	| "\>"                        
+//	| "-"                        
+//	| "&"                        
+//	| "|"                        
+//	| "+"                        
+//	| "*"                        
+//	| "/"                        
+//	| "^"                        
+//	| "%"
+//	;
 
 syntax Token_tree
+	// TODO: Not sure about this one
 	= Delimited_token_trees
-	| tttok:{Unpaired_token ","}*
+	| tttok:{Expression ","}*
 	;
 
 syntax Delimited_token_trees
@@ -1107,13 +1096,13 @@ syntax Delimited_token_trees
 	;
 
 syntax Parens_delimited_token_trees
-	= tttok:"(" Token_trees ")"
+	= tttok:"(" Token_tree ")"
 	;
 
 syntax Braces_delimited_token_trees
-	= tttok:"{" Token_trees "}"
+	= tttok:"{" Token_tree "}"
 	;
 
 syntax Brackets_delimited_token_trees
-	= tttok:"[" Token_trees "]"
+	= tttok:"[" Token_tree "]"
 	;
