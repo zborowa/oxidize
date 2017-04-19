@@ -26,14 +26,14 @@ keyword Rust_keywords
 	| "enum" | "extern" | "false" | "final" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "macro" | "match" 
 	| "mod" | "move" | "mut" | "offsetof" | "override" | "priv" | "proc" | "pub" | "pure" | "ref" | "return" | "Self" 
 	| "self" | "sizeof" | "static" | "struct" | "super" | "trait" | "true" | "type" | "typeof" | "unsafe" | "unsized" 
-	| "use" | "virtual" | "where" | "while" | "yield"
+	| "use" | "virtual" | "where" | "while" | "yield" | "macro_rules"
 	;
 
 // Identifier regex not to be confused with syntax Identifier present in the file
 lexical Ident
 	= 	(
 			[a-z A-Z 0-9 \u0080-\u00ff _] !<< 
-			[a-z A-Z \u0080-\u00ff _] [a-z A-Z 0-9 \u0080-\u00ff _]* !>> 
+			[a-z A-Z \u0080-\u00ff $ _] [a-z A-Z 0-9 \u0080-\u00ff _]* !>> 
 			[a-z A-Z 0-9 \u0080-\u00ff _]
 		) \ Rust_keywords
 	;
@@ -51,14 +51,27 @@ lexical Literal_char
 	;
 
 lexical Literal_integer
-	= [0-9][0-9 _]*
-	| "0b" [0 1 _]+
-	| "0o" [0-7 _]+
-	| "0x" [0-9 a-f A-F _]+
+	= [0-9] [0-9 _]* ("." ("." | [a-zA-Z]))? Numeric_type?
+	| "0b"  [0 1 _]+ Numeric_type?
+	| "0o"  [0-8 _]+ Numeric_type?
+	| "0x"  [0-9 a-f A-F _]+ Numeric_type?
 	;
 
 lexical Literal_float 
-	= [0-9] [0-9 _]* "." ([0-9] [0-9 _]*)? ([eE] [\- +] [0-9] [0-9 _]*)?
+	= [0-9] [0-9 _]* "." ([0-9] [0-9 _]*)? ([eE] [\- +] [0-9] [0-9 _]*)? Numeric_type?
+	;
+	
+lexical Numeric_type
+	= "i8"
+	| "i16"
+	| "i32"
+	| "i64"
+	| "u8"
+	| "u16"
+	| "u32"
+	| "u64"
+	| "f32"
+	| "f64"
 	;
 
 lexical Literal_string
@@ -108,13 +121,13 @@ lexical Shebang
 
 lexical Shebang_line
 	// Treat shebangs as a comment: https://github.com/rust-lang/rust/issues/1772 
-	= Shebang ![\n]* !>> [\ \t\r \u00A0 \u1680 \u2000-\u200A \u202F \u205F \u3000] $
+	= Shebang "[" ![\]]* "]"
 	;
 
 /* #### #### Items and attributes #### #### */
 
 start syntax Crate
-	= crate:Shebang_line? Mod_item* mode_item
+	= crate:Shebang_line* Mod_item* mode_item
 	;
 	
 syntax Inner_attributes
@@ -146,7 +159,7 @@ syntax Mod_item
 
 syntax Item 
 	= Statement_item statement_item
-	| Item_macro item_macro
+	> Item_macro item_macro
 	;
 
 syntax Statement_item 
@@ -166,12 +179,42 @@ syntax Item_const
 	;
 
 syntax Item_macro
-	= item_macro:Path_expression path_expression "!" Identifier? identifier 
+	= macro_rules: Macro_rules
+	> item_macro: Path_expression  path_expression "!" Identifier? identifier 
 		Parens_delimited_token_trees token_trees ";"
-	| item_macro:Path_expression path_expression "!" Identifier? identifier 
+	| item_macro: Path_expression path_expression "!" Identifier? identifier 
 		Braces_delimited_token_trees token_trees
-	| item_macro:Path_expression path_expression "!" Identifier? identifier 
+	| item_macro: Path_expression path_expression "!" Identifier? identifier 
 		Brackets_delimited_token_trees token_trees ";"
+	;
+	
+syntax Macro_rules 
+	= "macro_rules" "!" Identifier "(" Macro_rule* ")" ";"?
+	| "macro_rules" "!" Identifier "{" Macro_rule* "}" ";"?
+	;
+	
+syntax Macro_rule
+	= "(" Matcher* ")" "=\>" "(" Matcher* ")" ";"?
+	| "(" Matcher* ")" "=\>" "{" Matcher* "}" ";"?
+	;
+	
+syntax Matcher
+	= bracket "(" Matcher* ")"
+	| bracket "[" Matcher* "]"
+	| bracket "{" Matcher* "}"
+	| "$" Identifier (":" Identifier)?
+	| "$" "(" Matcher* ")" Sep_token? ("*" | "+")
+	| Expression
+	// | // Grammar states a non_special_token
+	;
+	
+syntax Sep_token
+	= ";"
+	| ","
+	;
+
+lexical All
+	= ![]*
 	;
 
 syntax View_item
@@ -253,7 +296,7 @@ syntax Enum_args
 
 syntax Item_mod
 	= item_mod:"mod" Identifier identifier ";"
-	| item_mod:"mod" Identifier identifier "{" Inner_attribute+ inner_attributes Mod_item* mode_items"}"
+	| item_mod:"mod" Identifier identifier "{" Inner_attribute* inner_attributes Mod_item* mode_items"}"
 	;
 
 syntax Item_foreign_mod
@@ -357,12 +400,8 @@ syntax Impl_item
 	;
 
 syntax Item_fn
-	= item_fn:"fn" 
-		Identifier identifier 
-		Generic_params? generic_params 
-		Fn_decl 
-		Where_clause? 
-		Inner_attributes_and_block
+	= item_fn:"fn" Identifier identifier Generic_params? generic_params 
+		Fn_decl Where_clause? Inner_attributes_and_block
 	;
 
 syntax Item_unsafe_fn
@@ -443,7 +482,7 @@ syntax Named_arg
 
 syntax Ret_type
 	= "-\>" "!"
-	| ret_ty:"-\>" Type
+	> ret_ty:"-\>" Type
 	//| Identifier /*empty*/
 	;
 
@@ -647,7 +686,7 @@ syntax Type_primitive_sum
 	| Type_primitive "+" Bounds_sequence?
 	;
 
-syntax Maybe_type_param_bounds
+syntax Type_param_bounds
 	= ":" Bounds_sequence
 	;
 
@@ -671,8 +710,8 @@ syntax Binding
 	;
 
 syntax Type_param
-	= Identifier Type_param_bounds? ("=" Type_sum)?
-	| Identifier "?" Identifier Type_param_bounds? ("=" Type_sum)?
+	= Identifier identifier Type_param_bounds? ("=" Type_sum)?
+	| Identifier identifier "?" Identifier Type_param_bounds? ("=" Type_sum)?
 	;
 
 syntax Bounds
@@ -980,104 +1019,110 @@ lexical Identifier
 
 // Have been replaced in the trees because of its 
 // incompletesness. The trees now use the Expression
-//lexical Unpaired_token
-//	= "\<\<"                        
-//	| "\>\>"                        
-//	| "\<="                         
-//	| "=="                       
-//	| "!="                         
-//	| "\>="                         
-//	| "&&"                     
-//	| "||"                       
-//	| "\<-"                     
-//	| "\<\<="                      
-//	| "\>\>="                      
-//	| "-="                    
-//	| "&="                      
-//	| "|="                       
-//	| "+="                     
-//	| "*="                     
-//	| "/="                    
-//	| "^="                    
-//	| "%="                  
-//	| ".."                     
-//	| "..."                  
-//	| "::"                    
-//	| "-\>"                     
-//	| "=\>"                  
-//	| Literal_byte                   
-//	| Literal_char                   
-//	| Literal_integer                
-//	| Literal_float                  
-//	| Literal_string                    
-//	| Literal_string_raw                
-//	| Literal_byte_string               
-//	| Literal_byte_string_raw           
-//	| Identifier
-//	| "_"                 
-//	| "\""                   
-//	| "self"                       
-//	| "static"                     
-//	| "as"                         
-//	| "break"                      
-//	| "crate"                      
-//	| "else"                       
-//	| "enum"                       
-//	| "extern"                     
-//	| "false"                      
-//	| "fn"                         
-//	| "for"                        
-//	| "if"                         
-//	| "impl"                       
-//	| "in"                         
-//	| "let"                        
-//	| "loop"                       
-//	| "match"                      
-//	| "mod"                        
-//	| "move"                       
-//	| "mut"                        
-//	| "priv"                       
-//	| "pub"                        
-//	| "ref"                        
-//	| "return"                     
-//	| "struct"                     
-//	| "true"                       
-//	| "trait"                      
-//	| "type"                       
-//	| "unsafe"                     
-//	| "use"                        
-//	| "while"                      
-//	| "continue"                   
-//	| "proc"                       
-//	| "box"                        
-//	| "const"                      
-//	| "where"                      
-//	| "typeof"                     
-//	| Comment          
-//	| Shebang                    
-//	| "\'static"            
-//	| ";"                        
-//	| ","                        
-//	| "."                        
-//	| "@"                        
-//	| "#"                        
-//	| "~"                        
-//	| ":"                        
-//	| "$"                        
-//	| "="                        
-//	| "?"                        
-//	| "!"                        
-//	| "\<"                        
-//	| "\>"                        
-//	| "-"                        
-//	| "&"                        
-//	| "|"                        
-//	| "+"                        
-//	| "*"                        
-//	| "/"                        
-//	| "^"                        
-//	| "%"
-//	;
+lexical Unpaired_token
+	= "\<\<"                        
+	| "\>\>"                        
+	| "\<="                         
+	| "=="                       
+	| "!="                         
+	| "\>="                         
+	| "&&"                     
+	| "||"                       
+	| "\<-"                     
+	| "\<\<="                      
+	| "\>\>="                      
+	| "-="                    
+	| "&="                      
+	| "|="                       
+	| "+="                     
+	| "*="                     
+	| "/="                    
+	| "^="                    
+	| "%="                  
+	| ".."                     
+	| "..."                  
+	| "::"                    
+	| "-\>"                     
+	| "=\>"                  
+	| Literal_byte                   
+	| Literal_char                   
+	| Literal_integer                
+	| Literal_float                  
+	| Literal_string                    
+	| Literal_string_raw                
+	| Literal_byte_string               
+	| Literal_byte_string_raw           
+	| Identifier
+	| "_"                 
+	| "\""                   
+	| "self"                       
+	| "static"                     
+	| "as"                         
+	| "break"                      
+	| "crate"                      
+	| "else"                       
+	| "enum"                       
+	| "extern"                     
+	| "false"                      
+	| "fn"                         
+	| "for"                        
+	| "if"                         
+	| "impl"                       
+	| "in"                         
+	| "let"                        
+	| "loop"                       
+	| "match"                      
+	| "mod"                        
+	| "move"                       
+	| "mut"                        
+	| "priv"                       
+	| "pub"                        
+	| "ref"                        
+	| "return"                     
+	| "struct"                     
+	| "true"                       
+	| "trait"                      
+	| "type"                       
+	| "unsafe"                     
+	| "use"                        
+	| "while"                      
+	| "continue"                   
+	| "proc"                       
+	| "box"                        
+	| "const"                      
+	| "where"                      
+	| "typeof"                     
+	| Comment          
+	| Shebang                    
+	| "\'static"            
+	| ";"                        
+	| ","                        
+	| "."                        
+	| "@"                        
+	| "#"                        
+	| "~"                        
+	| ":"                        
+	| "$"                        
+	| "=" !>> "\>"                        
+	| "?"                        
+	| "!"                        
+	| "\<"                        
+	| "\>"                        
+	| "-"                        
+	| "&"                        
+	| "|"                        
+	| "+"                        
+	| "*"                        
+	| "/"                        
+	| "^"                        
+	| "%"
+	| "("
+	| ")"
+	| "["
+	| "]"
+	| "{"
+	| "}"
+	;
 
 syntax Token_tree
 	// TODO: Not sure about this one

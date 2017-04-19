@@ -70,8 +70,43 @@ test bool Channel(){
 	return /amb(_) !:= parse_tree;
 }
 
-test bool Lib(){
-	str input_file = LoadFile("lib");
+test bool LibMacro(){
+	str input_file = LoadFile("lib_macro");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool Driver(){
+	str input_file = LoadFile("driver");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool FewOnes(){
+	str input_file = LoadFile("few-ones");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool ManyDigits(){
+	str input_file = LoadFile("many-digits");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool LibAlloc(){
+	str input_file = LoadFile("lib_alloc");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool Oom(){
+	str input_file = LoadFile("oom");
 	renderParsetree([start[Crate]]input_file);
 	Tree parse_tree = [start[Crate]]input_file;
 	
