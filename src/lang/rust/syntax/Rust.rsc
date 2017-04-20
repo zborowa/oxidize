@@ -45,7 +45,7 @@ lexical Literal_byte
 	;
 
 lexical Literal_char 
-	= "\'" "\\" UnicodeEscape "\'"
+	= "\'" UnicodeEscape "\'"
 	| "\'" ![\\ \' \n \t \r] "\'"
 	| "\'" [\ud800-\udbff] [\udc00-\udfff] "\'"
 	;
@@ -72,6 +72,8 @@ lexical Numeric_type
 	| "u64"
 	| "f32"
 	| "f64"
+	| "usize"
+	| "isize"
 	;
 
 lexical Literal_string
@@ -202,6 +204,7 @@ syntax Matcher
 	| "$" Identifier (":" Identifier)?
 	| "$" "(" Matcher* ")" Sep_token? ("*" | "+")
 	| Mod_item
+	| Expression
 	// | // Grammar states a non_special_token
 	;
 	
@@ -872,8 +875,7 @@ syntax Expression_qualified_path
 	;
 
 syntax Lambda_expression
-	= "||" Ret_type? Expression
-	| "|" (("&" "mut"?)? ":")? "|" Ret_type? Expression
+	= "|" (("&" "mut"?)? ":")? "|" Ret_type? Expression
 	| "|" Inferrable_params "|" Ret_type? Expression
 	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type? Expression
 	| "|" ":" Inferrable_params "|" Ret_type? Expression
@@ -1013,115 +1015,115 @@ lexical Identifier
 
 // Have been replaced in the trees because of its 
 // incompletesness. The trees now use the Expression
-lexical Unpaired_token
-	= "\<\<"                        
-	| "\>\>"                        
-	| "\<="                         
-	| "=="                       
-	| "!="                         
-	| "\>="                         
-	| "&&"                     
-	| "||"                       
-	| "\<-"                     
-	| "\<\<="                      
-	| "\>\>="                      
-	| "-="                    
-	| "&="                      
-	| "|="                       
-	| "+="                     
-	| "*="                     
-	| "/="                    
-	| "^="                    
-	| "%="                  
-	| ".."                     
-	| "..."                  
-	| "::"                    
-	| "-\>"                     
-	| "=\>"                  
-	| Literal_byte                   
-	| Literal_char                   
-	| Literal_integer                
-	| Literal_float                  
-	| Literal_string                    
-	| Literal_string_raw                
-	| Literal_byte_string               
-	| Literal_byte_string_raw           
-	| Identifier
-	| "_"                 
-	| "\""                   
-	| "self"                       
-	| "static"                     
-	| "as"                         
-	| "break"                      
-	| "crate"                      
-	| "else"                       
-	| "enum"                       
-	| "extern"                     
-	| "false"                      
-	| "fn"                         
-	| "for"                        
-	| "if"                         
-	| "impl"                       
-	| "in"                         
-	| "let"                        
-	| "loop"                       
-	| "match"                      
-	| "mod"                        
-	| "move"                       
-	| "mut"                        
-	| "priv"                       
-	| "pub"                        
-	| "ref"                        
-	| "return"                     
-	| "struct"                     
-	| "true"                       
-	| "trait"                      
-	| "type"                       
-	| "unsafe"                     
-	| "use"                        
-	| "while"                      
-	| "continue"                   
-	| "proc"                       
-	| "box"                        
-	| "const"                      
-	| "where"                      
-	| "typeof"                     
-	| Comment          
-	| Shebang                    
-	| "\'static"            
-	| ";"                        
-	| ","                        
-	| "."                        
-	| "@"                        
-	| "#"                        
-	| "~"                        
-	| ":"                        
-	| "$"                        
-	| "=" !>> "\>"                        
-	| "?"                        
-	| "!"                        
-	| "\<"                        
-	| "\>"                        
-	| "-"                        
-	| "&"                        
-	| "|"                        
-	| "+"                        
-	| "*"                        
-	| "/"                        
-	| "^"                        
-	| "%"
-	| "("
-	| ")"
-	| "["
-	| "]"
-	| "{"
-	| "}"
-	;
+//lexical Unpaired_token
+//	= "\<\<"                        
+//	| "\>\>"                        
+//	| "\<="                         
+//	| "=="                       
+//	| "!="                         
+//	| "\>="                         
+//	| "&&"                     
+//	| "||"                       
+//	| "\<-"                     
+//	| "\<\<="                      
+//	| "\>\>="                      
+//	| "-="                    
+//	| "&="                      
+//	| "|="                       
+//	| "+="                     
+//	| "*="                     
+//	| "/="                    
+//	| "^="                    
+//	| "%="                  
+//	| ".."                     
+//	| "..."                  
+//	| "::"                    
+//	| "-\>"                     
+//	| "=\>"                  
+//	| Literal_byte                   
+//	| Literal_char                   
+//	| Literal_integer                
+//	| Literal_float                  
+//	| Literal_string                    
+//	| Literal_string_raw                
+//	| Literal_byte_string               
+//	| Literal_byte_string_raw           
+//	| Identifier
+//	| "_"                 
+//	| "\""                   
+//	| "self"                       
+//	| "static"                     
+//	| "as"                         
+//	| "break"                      
+//	| "crate"                      
+//	| "else"                       
+//	| "enum"                       
+//	| "extern"                     
+//	| "false"                      
+//	| "fn"                         
+//	| "for"                        
+//	| "if"                         
+//	| "impl"                       
+//	| "in"                         
+//	| "let"                        
+//	| "loop"                       
+//	| "match"                      
+//	| "mod"                        
+//	| "move"                       
+//	| "mut"                        
+//	| "priv"                       
+//	| "pub"                        
+//	| "ref"                        
+//	| "return"                     
+//	| "struct"                     
+//	| "true"                       
+//	| "trait"                      
+//	| "type"                       
+//	| "unsafe"                     
+//	| "use"                        
+//	| "while"                      
+//	| "continue"                   
+//	| "proc"                       
+//	| "box"                        
+//	| "const"                      
+//	| "where"                      
+//	| "typeof"                     
+//	| Comment          
+//	| Shebang                    
+//	| "\'static"            
+//	| ";"                        
+//	| ","                        
+//	| "."                        
+//	| "@"                        
+//	| "#"                        
+//	| "~"                        
+//	| ":"                        
+//	| "$"                        
+//	| "=" !>> "\>"                        
+//	| "?"                        
+//	| "!"                        
+//	| "\<"                        
+//	| "\>"                        
+//	| "-"                        
+//	| "&"                        
+//	| "|"                        
+//	| "+"                        
+//	| "*"                        
+//	| "/"                        
+//	| "^"                        
+//	| "%"
+//	| "("
+//	| ")"
+//	| "["
+//	| "]"
+//	| "{"
+//	| "}"
+//	;
 
 syntax Token_tree
 	// TODO: Not sure about this one
 	= Delimited_token_trees
-	| tttok:{Expression ","}*
+	> tttok: Expression
 	;
 
 syntax Delimited_token_trees
@@ -1131,13 +1133,13 @@ syntax Delimited_token_trees
 	;
 
 syntax Parens_delimited_token_trees
-	= tttok:"(" Token_tree ")"
+	= tttok:"(" {Token_tree Sep_token}* ")" Sep_token?
 	;
 
 syntax Braces_delimited_token_trees
-	= tttok:"{" Token_tree "}"
+	= tttok:"{" {Token_tree Sep_token}* "}" Sep_token?
 	;
 
 syntax Brackets_delimited_token_trees
-	= tttok:"[" Token_tree "]"
+	= tttok:"[" {Token_tree Sep_token}* "]" Sep_token?
 	;

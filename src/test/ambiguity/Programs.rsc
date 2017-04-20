@@ -121,6 +121,27 @@ test bool LibArena(){
 
 test bool BtreeMap(){
 	str input_file = LoadFile("btree_map");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool BenchSlice(){
+	str input_file = LoadFile("bench_slice");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool BenchStr(){
+	str input_file = LoadFile("bench_str");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool BootstrapConfig(){
+	str input_file = LoadFile("bootstrap_config");
 	renderParsetree([start[Crate]]input_file);
 	Tree parse_tree = [start[Crate]]input_file;
 	
