@@ -8,17 +8,17 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//#![deny(warnings)]
-//
-//extern crate filetime;
-//
-//use std::fs::File;
-//use std::io;
-//use std::path::{Path, PathBuf};
-//use std::process::{Command, Stdio};
-//use std::{fs, env};
-//
-//use filetime::FileTime;
+#![deny(warnings)]
+
+extern crate filetime;
+
+use std::fs::File;
+use std::io;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::{fs, env};
+
+use filetime::FileTime;
 
 /// A helper macro to `unwrap` a result except also print out details like:
 ///

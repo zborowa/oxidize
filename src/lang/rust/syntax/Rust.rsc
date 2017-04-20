@@ -129,32 +129,29 @@ lexical Shebang_line
 start syntax Crate
 	= crate:Shebang_line* Mod_item* mode_item
 	;
-	
-syntax Inner_attributes
-	= Inner_attribute+
-	;
 
 syntax Inner_attribute
-	= inner_attributes:Shebang "[" Meta_item meta_item "]"
-	| inner_attributes:Comment comment
+	= inner_attributes: Shebang "[" Meta_item meta_item "]"
+	| inner_comment: Comment comment
 	;
 
 syntax Outer_attribute
-	= "#" "[" Meta_item meta_item "]"
+	= outer_attributes: "#" "[" Meta_item meta_item "]"
+	| outer_comment: Comment comment
 	;
 
 syntax Meta_item
-	= meta_word:Identifier identifier
-	| meta_name_value:Identifier identifier "=" Literal literal
-	| meta_list:Identifier identifier "(" {Meta_item ","}* meta_items ","? ")"
+	= meta_word: Identifier identifier
+	| meta_name_value: Identifier identifier "=" Literal literal
+	| meta_list: Identifier identifier "(" {Meta_item ","}* meta_items ","? ")"
 	;
 
 syntax Attributes_and_vis
-	= AttrsAndVis:Outer_attribute* outer_attributes "pub"? visibility
+	= AttrsAndVis: Outer_attribute* outer_attributes "pub"? visibility
 	;
 
 syntax Mod_item
-	= item:Attributes_and_vis attribute_visbility Item item
+	= item: Attributes_and_vis attribute_visbility Item item
 	;
 
 syntax Item 
@@ -194,17 +191,17 @@ syntax Macro_rules
 	;
 	
 syntax Macro_rule
-	= "(" Matcher* ")" "=\>" "(" Matcher* ")" ";"?
-	| "(" Matcher* ")" "=\>" "{" Matcher* "}" ";"?
+	= "(" {Matcher ","}* ")" "=\>" "(" Matcher* ")" ";"?
+	| "(" {Matcher ","}* ")" "=\>" "{" Matcher* "}" ";"?
 	;
 	
 syntax Matcher
-	= bracket "(" Matcher* ")"
-	| bracket "[" Matcher* "]"
-	| bracket "{" Matcher* "}"
+	= "(" Matcher* ")"
+	| "[" Matcher* "]"
+	| "{" Matcher* "}"
 	| "$" Identifier (":" Identifier)?
 	| "$" "(" Matcher* ")" Sep_token? ("*" | "+")
-	| Expression
+	| Mod_item
 	// | // Grammar states a non_special_token
 	;
 	
@@ -487,18 +484,18 @@ syntax Ret_type
 	;
 
 syntax Generic_params
-	= generics:"\<" Lifetime "\>"
-	| generics:"\<" Lifetime "," "\>"
-	| generics:"\<" Lifetime "\>\>"
-	| generics:"\<" Lifetime "," "\>\>"
-	| generics:"\<" Lifetime "," Type_params "\>"
-	| generics:"\<" Lifetime "," Type_params "," "\>"
-	| generics:"\<" Lifetime "," Type_params "\>\>"
-	| generics:"\<" Lifetime "," Type_params "," "\>\>"
-	| generics:"\<" Type_params "\>"
-	| generics:"\<" Type_params "," "\>"
-	| generics:"\<" Type_params "\>\>"
-	| generics:"\<" Type_params "," "\>\>"
+	= generics: "\<" Lifetime "\>"
+	| generics: "\<" Lifetime "," "\>"
+	| generics: "\<" Lifetime "\>\>"
+	| generics: "\<" Lifetime "," "\>\>"
+	| generics: "\<" Lifetime "," Type_params "\>"
+	| generics: "\<" Lifetime "," Type_params "," "\>"
+	| generics: "\<" Lifetime "," Type_params "\>\>"
+	| generics: "\<" Lifetime "," Type_params "," "\>\>"
+	| generics: "\<" Type_params "\>"
+	| generics: "\<" Type_params "," "\>"
+	| generics: "\<" Type_params "\>\>"
+	| generics: "\<" Type_params "," "\>\>"
 	;
 
 syntax Where_clause
@@ -740,8 +737,8 @@ syntax Lifetime_and_bounds
 	| "\'static"
 	;
 
-syntax Lifetime
-	= "\'"
+lexical Lifetime
+	= "\'" Identifier
 	| "\'static"
 	;
 
@@ -753,20 +750,16 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= "{" Inner_attributes? Maybe_statements? "}"
+	= bracket "{" Inner_attribute* Maybe_statements? "}"
 	;
 
 syntax Block
-	= "{" Maybe_statements? "}"
+	= bracket "{" Maybe_statements? "}"
 	;
 
 syntax Maybe_statements
-	= Statements Expression!blockExpr!blockStmt?
+	= Statement+ Expression!blockExpr!blockStmt?
 	| Expression!blockExpr!blockStmt
-	;
-
-syntax Statements
-	= Statement+
 	;
 
 syntax Statement
@@ -784,6 +777,7 @@ syntax Expressions
 syntax Path_expression
 	= "::"? Path_generic_args_with_colons
 	| self_path:"self" "::" Path_generic_args_with_colons
+	| super_path:"super" "::" Path_generic_args_with_colons
 	;
 
 syntax Path_generic_args_with_colons
@@ -813,7 +807,7 @@ syntax Expression
 			| "box" Expression!parenExprs
 			)
 	| right Expression "as" Type 
-	| non-assoc Expression? ".." Expression?
+	| Expression? ".." Expression?
 	> left  ( Expression "*" Expression
 			| Expression "/" Expression
 			| Expression "%" Expression
@@ -853,9 +847,9 @@ syntax Expression
 			)
 	> "[" Vector_expression "]"
 	| "(" (Expressions ","?)? ")"
-	> non-assoc parenExprs: Expression "(" (Expressions ","?)? ")"
+	> parenExprs: Expression "(" (Expressions ","?)? ")"
 	| Expression "[" Expression? "]"
-	//> left Expression "." Literal_integer
+	> left Expression "." Literal_integer
 	> left exprPath: Expression "." Path_generic_args_with_colons
 	| pathStruct: Path_expression "{" Struct_expression_fields? "}"
 	| Macro_expression

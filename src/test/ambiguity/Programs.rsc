@@ -9,14 +9,14 @@ import \test::func::LoadFile;
 
 test bool GuessingGame(){
 	str input_file = LoadFile("guessing_game");
-	Tree parse_tree = parse(#Crate, input_file, allowAmbiguity=true);
+	Tree parse_tree = [start[Crate]]input_file;
 	
 	return /amb(_) !:= parse_tree;
 }
 
 test bool RustMain(){
 	str input_file = LoadFile("rust_main");
-	Tree parse_tree = parse(#Crate, input_file, allowAmbiguity=true);
+	Tree parse_tree = [start[Crate]]input_file;
 	
 	return /amb(_) !:= parse_tree;
 }
@@ -107,6 +107,20 @@ test bool LibAlloc(){
 
 test bool Oom(){
 	str input_file = LoadFile("oom");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool LibArena(){
+	str input_file = LoadFile("lib_arena");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool BtreeMap(){
+	str input_file = LoadFile("btree_map");
 	renderParsetree([start[Crate]]input_file);
 	Tree parse_tree = [start[Crate]]input_file;
 	
