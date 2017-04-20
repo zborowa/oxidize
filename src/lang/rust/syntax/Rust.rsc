@@ -849,7 +849,7 @@ syntax Expression
 			| contnIdent: "continue" Identifier?
 			)
 	> "[" Vector_expression "]"
-	| "(" (Expressions ","?)? ")"
+	| parenExpr: "(" (Expressions ","?)? ")"
 	> parenExprs: Expression "(" (Expressions ","?)? ")"
 	| Expression "[" Expression? "]"
 	> left Expression "." Literal_integer
@@ -1123,7 +1123,7 @@ lexical Identifier
 syntax Token_tree
 	// TODO: Not sure about this one
 	= Delimited_token_trees
-	> tttok: Expression
+	> Expression!parenExpr
 	;
 
 syntax Delimited_token_trees
@@ -1133,13 +1133,13 @@ syntax Delimited_token_trees
 	;
 
 syntax Parens_delimited_token_trees
-	= tttok:"(" {Token_tree Sep_token}* ")" Sep_token?
+	= "(" {Token_tree Sep_token}* Sep_token? ")"
 	;
 
 syntax Braces_delimited_token_trees
-	= tttok:"{" {Token_tree Sep_token}* "}" Sep_token?
+	= "{" {Token_tree Sep_token}* Sep_token? "}"
 	;
 
 syntax Brackets_delimited_token_trees
-	= tttok:"[" {Token_tree Sep_token}* "]" Sep_token?
+	= "[" {Token_tree Sep_token}* Sep_token? "]"
 	;
