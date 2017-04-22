@@ -280,18 +280,18 @@ syntax Struct_tuple_field
 	;
 
 syntax Item_enum
-	= item_enum:"enum" Identifier identifier Generic_params? generic_params 
-		Where_clause? where "{" {Enum_def ","}* enum_defs","? "}"
+	= item_enum: "enum" Identifier identifier Generic_params? generic_params 
+		Where_clause? where "{" {Enum_def ","}* enum_defs ","? "}"
 	;
 
 syntax Enum_def
-	= enum_def:Attributes_and_vis Identifier identifier Enum_args? enum_args
+	= enum_def: Attributes_and_vis Identifier identifier Enum_args? enum_args
 	;
 
 syntax Enum_args
-	= enum_args:"{" {Struct_decl_field ","}* struct_decl_fields"}"
-	| enum_args:"{" {Type_sum ","}* type_sums "}"
-	| enum_args:"=" Expression expression
+	= enum_args: "{" {Struct_decl_field ","}* struct_decl_fields ","? "}"
+	| enum_args: "(" {Type_sum ","}* type_sums ")"
+	| enum_args: "=" Expression expression
 	;
 
 syntax Item_mod
@@ -1119,6 +1119,8 @@ lexical Identifier
 //	| "{"
 //	| "}"
 //	;
+
+// Atleast two thing are not working in the bootstrap_config file
 
 syntax Token_tree
 	// TODO: Not sure about this one
