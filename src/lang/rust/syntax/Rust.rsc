@@ -129,7 +129,7 @@ lexical Shebang_line
 /* #### #### Items and attributes #### #### */
 
 start syntax Crate
-	= crate:Shebang_line* Mod_item* mode_item
+	= crate: Shebang_line* Mod_item* mode_item
 	;
 
 syntax Inner_attribute
@@ -198,11 +198,11 @@ syntax Macro_rule
 	;
 	
 syntax Matcher
-	= "(" Matcher* ")"
-	| "[" Matcher* "]"
-	| "{" Matcher* "}"
+	= "(" {Matcher ","}* ")" Sep_token?
+	| "[" {Matcher ","}* "]" Sep_token?
+	| "{" {Matcher ","}* "}" Sep_token?
+	| "$" "(" {Matcher ","}* ")" Sep_token? ("*" | "+")
 	| "$" Identifier (":" Identifier)?
-	| "$" "(" Matcher* ")" Sep_token? ("*" | "+")
 	| Mod_item
 	| Expression
 	// | // Grammar states a non_special_token
@@ -848,10 +848,10 @@ syntax Expression
 			| returnExpr: "return" Expression?
 			| contnIdent: "continue" Identifier?
 			)
-	> "[" Vector_expression "]"
+	> vecExpr: "[" Vector_expression "]"
 	| parenExpr: "(" (Expressions ","?)? ")"
 	> parenExprs: Expression "(" (Expressions ","?)? ")"
-	| Expression "[" Expression? "]"
+	| vecExprs: Expression "[" Expression? "]"
 	> left Expression "." Literal_integer
 	> left exprPath: Expression "." Path_generic_args_with_colons
 	| pathStruct: Path_expression "{" Struct_expression_fields? "}"
