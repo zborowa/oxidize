@@ -8,6 +8,12 @@ Oxidized Rust (Idiomatic Rust)
 
 # Requirements
 
+[//]: # (ToDo: Write the project requirements)
+
 # Usage
 
+[//]: # (ToDo: Write the project usage)
+
 # Credits
+
+[//]: # (ToDo: Write the project credits)
