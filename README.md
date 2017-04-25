@@ -1,5 +1,13 @@
-# Oxidize: Open framework for idiomatic rule preservation [![Build Status](https://travis-ci.org/zborowa/oxidize.svg?branch=master)](https://travis-ci.org/zborowa/oxidize)
+# Oxidize: Open framework for idiomatic rule preservation
+
+[![Build Status](https://travis-ci.org/zborowa/oxidize.svg?branch=master)](https://travis-ci.org/zborowa/oxidize)
+
+[//]: # (ToDo: Write the project description)
+
 Oxidized Rust (Idiomatic Rust)
 
-## Commits style
-https://conventionalcommits.org/
+# Requirements
+
+# Usage
+
+# Credits
