@@ -1,6 +1,7 @@
 module \test::ambiguity::Programs
 
 import Prelude;
+import Exception;
 import vis::ParseTree;
 import analysis::grammars::Ambiguity;
 
@@ -135,14 +136,6 @@ test bool BenchSlice(){
 
 test bool BenchStr(){
 	str input_file = LoadFile("bench_str");
-	Tree parse_tree = [start[Crate]]input_file;
-	
-	return /amb(_) !:= parse_tree;
-}
-
-test bool BootstrapConfig(){
-	str input_file = LoadFile("bootstrap_config");
-	renderParsetree([start[Crate]]input_file);
 	Tree parse_tree = [start[Crate]]input_file;
 	
 	return /amb(_) !:= parse_tree;
