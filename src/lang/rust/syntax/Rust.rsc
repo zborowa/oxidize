@@ -304,10 +304,10 @@ syntax Item_foreign_mod
 	;
 
 syntax Foreign_item
-	= foreign_item:Attributes_and_vis "static" "mut"? Identifier identifier 
+	= foreign_item: Attributes_and_vis "static" "mut"? Identifier identifier 
 		":" Type type ";"
-	| foreign_item:Attributes_and_vis "unsafe"? "fn" Identifier identifier 
-		Generic_params? generic_params "(" Params? params ")" Ret_type? Where_clause? where ";"
+	| foreign_item: Attributes_and_vis "unsafe"? "fn" Identifier identifier 
+		Generic_params? generic_params "(" Params? params "..."? ")" Ret_type? Where_clause? where ";"
 	;
 
 syntax Identifiers_or_self
@@ -369,34 +369,30 @@ syntax Method
 	;
 
 syntax Impl_method
-	= method:Attributes_and_vis "unsafe"? ("extern" String?)? "fn" Identifier Generic_params? 
+	= method: Attributes_and_vis "unsafe"? ("extern" String?)? "fn" Identifier Generic_params? 
 		Fn_decl_with_self Where_clause? Inner_attributes_and_block
 	;
   
 syntax Item_impl
-	= item_impl:"unsafe"? "impl" Generic_params? 
-		Type_primitive_sum Where_clause? "{" Inner_attribute* Impl_items? "}"
-	| item_impl:"unsafe"? "impl" Generic_params? 
-		"(" Type ")" Where_clause? "{" Inner_attribute* Impl_items? "}"
-	| item_impl:"unsafe"? "impl" Generic_params? 
-		Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute* Impl_items? "}"
-	| item_impl_neg:"unsafe"? "impl" Generic_params? 
-		"!" Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute* Impl_items? "}"
-	| item_impl_default:"unsafe"? "impl" Generic_params? 
+	= item_impl: "unsafe"? "impl" Generic_params? 
+		Type_primitive_sum Where_clause? "{" Inner_attribute* Impl_item* "}"
+	| item_impl: "unsafe"? "impl" Generic_params? 
+		"(" Type ")" Where_clause? "{" Inner_attribute* Impl_item* "}"
+	| item_impl: "unsafe"? "impl" Generic_params? 
+		Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute* Impl_item* "}"
+	| item_impl_neg: "unsafe"? "impl" Generic_params? 
+		"!" Trait_ref "for" Type_sum Where_clause? "{" Inner_attribute* Impl_item* "}"
+	| item_impl_default: "unsafe"? "impl" Generic_params? 
 		Trait_ref "for" ".." "{" "}"
-	| item_impl_default_neg:"unsafe"? "impl" Generic_params? 
+	| item_impl_default_neg: "unsafe"? "impl" Generic_params? 
 		"!" Trait_ref "for" ".." "{" "}"
 	;
 
-syntax Impl_items
-	= ImplItems:Impl_item+ impl_items
-	;
-
 syntax Impl_item
-	= Impl_method
-	| impl_macro_item:Attributes_and_vis Item_macro
-	| impl_const:Attributes_and_vis Item_const
-	| impl_type:Attributes_and_vis "type" Identifier Generic_params? "=" Type_sum ";"
+	= impl_method: Impl_method
+	| impl_macro_item: Attributes_and_vis Item_macro
+	| impl_const: Attributes_and_vis Item_const
+	| impl_type: Attributes_and_vis "type" Identifier Generic_params? "=" Type_sum ";"
 	;
 
 syntax Item_fn
@@ -482,8 +478,7 @@ syntax Named_arg
 
 syntax Ret_type
 	= "-\>" "!"
-	> ret_ty:"-\>" Type
-	//| Identifier /*empty*/
+	> ret_ty: "-\>" Type
 	;
 
 syntax Generic_params
@@ -611,15 +606,12 @@ syntax Type
 	;
 
 syntax Type_primitive
-	= Path_generic_args_without_colons
-	| "::" Path_generic_args_without_colons
-	| "self" "::" Path_generic_args_without_colons
+	= "Self"
+	| ("self"? "::")? Path_generic_args_without_colons
 	| "Box" Type
 	| "*" ("mut" | "const")? Type
-	| "&" Type
-	| "&" "mut" Type
-	| "&&" Type
-	| "&&" "mut" Type
+	| "&" "mut"? Type
+	| "&&" "mut"? Type
 	| "&" Lifetime "mut"? Type
 	| "&&" Lifetime "mut"? Type
 	| "[" Type "]"
