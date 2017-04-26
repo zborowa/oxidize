@@ -422,8 +422,7 @@ syntax Fn_params
 	;
 
 syntax Fn_anon_params
-	= "(" Anon_param Anon_params_allow_variadic_tail? ")"
-	| "("  ")"
+	= "(" Anon_params_allow_variadic_tail ")"
 	;
 
 syntax Fn_params_with_self
@@ -462,8 +461,7 @@ syntax Anon_param
 	;
 
 syntax Anon_params_allow_variadic_tail
-	= "," "..."
-	| args:"," Anon_param Anon_params_allow_variadic_tail
+	= args: {Anon_param ","}* ("," "...")?
 	;
 
 syntax Named_arg
