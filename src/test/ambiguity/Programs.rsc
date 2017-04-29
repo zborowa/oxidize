@@ -140,3 +140,31 @@ test bool BenchStr(){
 	
 	return /amb(_) !:= parse_tree;
 }
+
+test bool ScrambleCvs(){
+	str input_file = LoadFile("scramble_cvs");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool CheckingCvs(){
+	str input_file = LoadFile("checkin_cvs");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool HashCvs(){
+	str input_file = LoadFile("hash_cvs");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
+
+test bool CommitCvs(){
+	str input_file = LoadFile("commit_cvs");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
