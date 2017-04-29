@@ -40,7 +40,7 @@ lexical Ident
 
 lexical Literal_byte
 	= "b\'" "\\" [xX] Hexit Hexit "\'"
-	| "b\'" "\\" [n r t \\ \' \' 0] "\'"
+	| "b\'" "\\" [n r t \\ \' \" 0] "\'"
 	| "b\'" ![\\ \' \n \r \t] [\udc00-\udfff]? "\'"
 	;
 
