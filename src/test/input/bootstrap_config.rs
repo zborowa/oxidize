@@ -422,11 +422,10 @@ impl Config {
                 Some(n) => n,
                 None => continue
             };
-
+			
             macro_rules! check {
                 ($(($name:expr, $val:expr),)*) => {
                     if value == "1" {
-                    	$($bla)*
                         $(
                             if key == concat!("CFG_ENABLE_", $name) {
                                 $val = true;
