@@ -475,8 +475,7 @@ syntax Named_arg
 	;
 
 syntax Ret_type
-	= "-\>" "!"
-	> ret_ty: "-\>" Type
+	= ret_ty: "-\>" Type type
 	;
 
 syntax Generic_params
