@@ -784,14 +784,7 @@ syntax Macro_expression
 	;
 
 syntax Expression
-	= right ( "-" Expression
-			| "!" Expression
-			| "*" Expression
-			| "&" "mut"? Expression
-			| "&&" "mut"? Expression
-			| "move"? Lambda_expression
-			)
-	| procExpr: "proc" "(" Inferrable_params? ")" Expression
+	= procExpr: "proc" "(" Inferrable_params? ")" Expression
 	| blockStmt: Block
 	| blockExpr: Block_expression
 	| Expression_qualified_path
@@ -848,6 +841,13 @@ syntax Expression
 	| "self"
 	> Path_expression
 	| Literal
+	> right ( "-" Expression
+			| "!" Expression
+			| "*" Expression
+			| "&" "mut"? Expression
+			| "&&" "mut"? Expression
+			)
+	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
 	;
 
 syntax Expression_qualified_path
