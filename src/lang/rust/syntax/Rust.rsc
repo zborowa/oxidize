@@ -809,7 +809,7 @@ syntax Expression
 			| Expression "-" Expression
 			> Expression "\<\<" Expression
 			| Expression "\>\>" Expression
-			> Expression "&" Expression
+			> Expression "&" !>> "&" Expression
 			> Expression "^" Expression
 			> Expression "|" Expression
 			> Expression "\<" Expression
