@@ -3,6 +3,8 @@
 	<name>oxidize</name>
 	<comment></comment>
 	<projects>
+		<project>drambiguity</project>
+		<project>salix</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
