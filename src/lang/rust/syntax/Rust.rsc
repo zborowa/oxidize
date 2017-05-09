@@ -832,7 +832,7 @@ syntax Expression
 			)
 	> vecExpr: "[" Vector_expression "]"
 	| parenExpr: "(" (Expressions ","?)? ")"
-	> parenExprs: Expression!returnExpr "(" (Expressions ","?)? ")"
+	> parenExprs: Expression!returnExpr!lazyOr "(" (Expressions ","?)? ")"
 	| vecExprs: Expression "[" Expression? "]"
 	> left Expression "." Literal_integer
 	> left exprPath: Expression "." Path_generic_args_with_colons
