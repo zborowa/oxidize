@@ -106,15 +106,15 @@ lexical UnicodeEscape
 	; 
 
 lexical Literal_string_raw 
-	= [r] Literal_string
+	= "r" Literal_string
 	;
 
 lexical Literal_byte_string 
-	= [b] Literal_string
+	= "b" Literal_string
 	;
 
 lexical Literal_byte_string_raw
-	= [b] Literal_string_raw
+	= "br" Literal_string
 	;
 
 lexical Shebang 
