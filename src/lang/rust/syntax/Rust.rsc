@@ -431,7 +431,7 @@ syntax Fn_params_with_self
 	;
 
 syntax Fn_anon_params_with_self
-	= self_value: "(" ("&" LifeTime?)? "mut"? "self" Type_ascription? ("," | ("," Anon_params ","?)) ")"
+	= self_value: "(" ("&" Lifetime?)? "mut"? "self" Type_ascription? ("," | ("," Anon_params ","?))? ")"
 	| self_static:"(" Anon_params? ")"
 	;
 
