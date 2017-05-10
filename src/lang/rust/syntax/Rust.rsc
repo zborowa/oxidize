@@ -479,18 +479,12 @@ syntax Ret_type
 	;
 
 syntax Generic_params
-	= generics: "\<" Lifetime "\>"
-	| generics: "\<" Lifetime "," "\>"
-	| generics: "\<" Lifetime "\>\>"
-	| generics: "\<" Lifetime "," "\>\>"
-	| generics: "\<" Lifetime "," Type_params "\>"
-	| generics: "\<" Lifetime "," Type_params "," "\>"
-	| generics: "\<" Lifetime "," Type_params "\>\>"
-	| generics: "\<" Lifetime "," Type_params "," "\>\>"
-	| generics: "\<" Type_params "\>"
-	| generics: "\<" Type_params "," "\>"
-	| generics: "\<" Type_params "\>\>"
-	| generics: "\<" Type_params "," "\>\>"
+	= generics: "\<" Lifetimes ","? "\>"
+	| generics: "\<" Lifetimes ","? "\>\>"
+	| generics: "\<" Lifetimes "," Type_params ","? "\>"
+	| generics: "\<" Lifetimes "," Type_params ","? "\>\>"
+	| generics: "\<" Type_params ","? "\>"
+	| generics: "\<" Type_params ","? "\>\>"
 	;
 
 syntax Where_clause
