@@ -709,7 +709,7 @@ syntax Bound
 
 syntax Ltbounds
 	= Lifetime
-	| LtBounds "+" Lifetime
+	| Ltbounds "+" Lifetime
 	;
 
 syntax Lifetimes
