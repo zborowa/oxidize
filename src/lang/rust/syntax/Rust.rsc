@@ -365,7 +365,7 @@ syntax Method
 
 syntax Method
 	= Attributes_and_vis "unsafe"? ("extern" String?)? "fn" Identifier identifier Generic_params? generic_params 
-		Fn_decl_with_self_allow_anon_params Where_clause? Inner_attrs_and_block
+		Fn_decl_with_self_allow_anon_params Where_clause? Inner_attributes_and_block
 	;
 
 syntax Impl_method
