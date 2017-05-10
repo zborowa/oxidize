@@ -30,7 +30,7 @@ keyword Rust_keywords
 	;
 
 // Identifier regex not to be confused with syntax Identifier present in the file
-lexical Ident
+lexical Identifier
 	= 	(
 			[a-z A-Z 0-9 \u0080-\u00ff _] !<< 
 			[a-z A-Z \u0080-\u00ff $ _] [a-z A-Z 0-9 \u0080-\u00ff _]* !>> 
