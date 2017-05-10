@@ -77,7 +77,7 @@ lexical Numeric_type
 	;
 
 lexical Literal_string
-	= "\"" StringChar* "\""
+	= "\"" StringChar* "\\"? "\""
 	;
 
 lexical StringChar
