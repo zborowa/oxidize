@@ -597,7 +597,7 @@ syntax Type
 	;
 
 syntax Type_primitive
-	= "Self"
+	= "Self" ("::" Path_generic_args_without_colons)?
 	| ("self"? "::")? Path_generic_args_without_colons
 	| "Box" Type
 	| "*" ("mut" | "const")? Type
