@@ -491,8 +491,8 @@ syntax Where_clause
 	= where_clause:"where" {Where_predicate ","}+ ","?
 	;
 syntax Where_predicate
-	= where_predicate:("for" "\<" LifeTime "\>")? LifeTime ":" Bounds
-	| where_predicate:("for" "\<" LifeTime "\>")? Type ":" Bounds_sequence?
+	= where_predicate:("for" "\<" Lifetime "\>")? Lifetime ":" Bounds
+	| where_predicate:("for" "\<" Lifetime "\>")? Type ":" Bounds_sequence?
 	;
 
 syntax Type_params
