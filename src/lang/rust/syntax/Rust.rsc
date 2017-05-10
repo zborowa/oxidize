@@ -180,11 +180,11 @@ syntax Item_const
 syntax Item_macro
 	= macro_rules: Macro_rules
 	> item_macro: Path_expression  path_expression "!" Identifier? identifier 
-		Parens_delimited_token_trees token_trees ";"
+		Parens_delimited_token_trees paren_token_trees ";"
 	| item_macro: Path_expression path_expression "!" Identifier? identifier 
-		Braces_delimited_token_trees token_trees
+		Braces_delimited_token_trees brace_token_trees
 	| item_macro: Path_expression path_expression "!" Identifier? identifier 
-		Brackets_delimited_token_trees token_trees ";"
+		Brackets_delimited_token_trees bracket_token_trees ";"
 	;
 	
 syntax Macro_rules 
