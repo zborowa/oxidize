@@ -1124,11 +1124,7 @@ lexical String
 	= lit_str:Literal_string
 	| lit_str:Literal_string_raw
 	| lit_byte_str:Literal_byte_string
-	| lit_byte_str:Literal_byte_string_raw
-	;
-
-lexical Identifier
-	= ident: Ident
+	| lit_byte_str_raw:Literal_byte_string_raw
 	;
 
 // Have been replaced in the trees because of its 
