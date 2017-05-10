@@ -522,7 +522,7 @@ syntax Generic_args
 	;
 
 syntax Generic_values
-	= {Lifetimes ","}* Type_sums_and_or_bindings?
+	= {Lifetimes ","}* ","? Type_sums_and_or_bindings?
 	;
 
 syntax Type_sums_and_or_bindings
