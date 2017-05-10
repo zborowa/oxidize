@@ -713,8 +713,9 @@ syntax Ltbounds
 	;
 
 syntax Lifetimes
-	= Lifetime_and_bounds
-	| Lifetimes "," Lifetime_and_bounds
+	//= Lifetime_and_bounds
+	//| Lifetimes "," Lifetime_and_bounds
+	= {Lifetime_and_bounds ","}+
 	;
 
 syntax Lifetime_and_bounds
