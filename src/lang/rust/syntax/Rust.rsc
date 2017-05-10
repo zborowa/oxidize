@@ -496,7 +496,7 @@ syntax Where_predicate
 	;
 
 syntax Type_params
-	= type_params:","? Type_param
+	= type_params: {Type_param ","}+
 	;
 
 syntax Path_no_types_allowed
