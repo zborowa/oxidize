@@ -660,8 +660,8 @@ syntax Type_sums
 	;
 
 syntax Type_sum
-	= Type
-	| Type "+" Bounds_sequence?
+	= Attributes_and_vis Type
+	| Attributes_and_vis Type "+" Bounds_sequence?
 	;
 
 syntax Type_primitive_sum
