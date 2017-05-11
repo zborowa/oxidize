@@ -1238,24 +1238,24 @@ lexical String
 
 syntax Token_tree
 	// TODO: Not sure about this one
-	= Delimited_token_trees
-	> Expression!parenExpr
+	= token_trees: Delimited_token_trees token_trees
+	> expr: Expression!parenExpr expr
 	;
 
 syntax Delimited_token_trees
-	= Parens_delimited_token_trees
-	| Braces_delimited_token_trees
-	| Brackets_delimited_token_trees
+	= paren_token_trees: Parens_delimited_token_trees
+	| braces_token_trees: Braces_delimited_token_trees
+	| brackets_token_trees: Brackets_delimited_token_trees
 	;
 
 syntax Parens_delimited_token_trees
-	= "(" {Token_tree Sep_token}* Sep_token? ")"
+	= bracket "(" {Token_tree Sep_token}* Sep_token? ")"
 	;
 
 syntax Braces_delimited_token_trees
-	= "{" {Token_tree Sep_token}* Sep_token? "}"
+	= bracket "{" {Token_tree Sep_token}* Sep_token? "}"
 	;
 
 syntax Brackets_delimited_token_trees
-	= "[" {Token_tree Sep_token}* Sep_token? "]"
+	= bracket "[" {Token_tree Sep_token}* Sep_token? "]"
 	;
