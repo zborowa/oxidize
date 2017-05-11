@@ -1111,20 +1111,20 @@ syntax Let
 /* #### #### Macros and misc. rules #### ####*/
 
 lexical Literal
-	= lit_byte:Literal_byte
-	| lit_char:Literal_char
-	| lit_integer:Literal_integer
-	| lit_float:Literal_float
-	| lit_bool:"true"
-	| lit_bool:"false"
-	> String
+	= lit_byte: Literal_byte lit_byte
+	| lit_char: Literal_char lit_char
+	| lit_integer: Literal_integer lit_integer
+	| lit_float: Literal_float lit_float
+	| lit_bool_true: "true" lit_bool_true
+	| lit_bool_false: "false" lit_bool_false
+	> lit_str: String lit_str
 	;
 
 lexical String
-	= lit_str:Literal_string
-	| lit_str:Literal_string_raw
-	| lit_byte_str:Literal_byte_string
-	| lit_byte_str_raw:Literal_byte_string_raw
+	= lit_str: Literal_string lit_str
+	| lit_str_raw: Literal_string_raw lit_str_raw
+	| lit_byte_str: Literal_byte_string lit_byte_str
+	| lit_byte_str_raw: Literal_byte_string_raw lit_byte_str_raw
 	;
 
 // Have been replaced in the trees because of its 
