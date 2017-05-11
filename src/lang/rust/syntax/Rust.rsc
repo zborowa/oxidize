@@ -775,36 +775,21 @@ syntax Macro_expression
 	| Path_expression "!" Identifier? Brackets_delimited_token_trees
 	;
 	
+// new
 syntax Expression
 	= procExpr: "proc" "(" Inferrable_params? ")" Expression
 	| blockStmt: Block
 	| blockExpr: Block_expression
 	| Expression_qualified_path
 	> right ( "box" "(" Expression? ")" Expression
-			| "box" Expression!parenExprs
+			| "box" Expression
 			)
-	| right Expression "as" Type 
 	| Expression? ".." Expression?
 	> left  ( Expression "*" Expression
 			| Expression "/" Expression
 			| Expression "%" Expression
 			)
-	> left  ( Expression "+" Expression
-			| Expression "-" Expression
-			> Expression "\<\<" Expression
-			| Expression "\>\>" Expression
-			> Expression "&" !>> "&" Expression
-			> Expression "^" Expression
-			> Expression "|" Expression
-			> Expression "\<" Expression
-			| Expression "\>" Expression
-			| Expression "\<=" Expression
-			| Expression "\>=" Expression
-			> Expression "==" Expression
-			| Expression "!=" Expression
-			> lazyOr: Expression "||" Expression
-			> Expression "&&" Expression
-			)
+	
 	> right Expression "\<-" Expression
 	> right ( Expression "=" Expression
 			| Expression "\<\<=" Expression
@@ -818,13 +803,32 @@ syntax Expression
 			| Expression "^=" Expression
 			| Expression "%=" Expression
 			)
+			
+	> left  ( Expression "+" Expression
+			| Expression "-" Expression
+			> Expression "\<\<" Expression
+			| Expression "\>\>" Expression
+			> Expression "&" !>> "&" Expression
+			> Expression "^" Expression
+			> Expression "|" !>> "|" Expression
+			> Expression "\<" Expression
+			| Expression "\>" Expression
+			| Expression "\<=" Expression
+			| Expression "\>=" Expression
+			> Expression "==" Expression
+			| Expression "!=" Expression
+			> Expression "||" Expression
+			> Expression "&&" Expression
+			)
+	| right Expression "as" Type 
+			
 	> right ( breakIdent: "break" Identifier?
 			| returnExpr: "return" Expression?
 			| contnIdent: "continue" Identifier?
 			)
 	> vecExpr: "[" Vector_expression "]"
 	| parenExpr: "(" (Expressions ","?)? ")"
-	> parenExprs: Expression!returnExpr!lazyOr "(" (Expressions ","?)? ")"
+	> parenExprs: Expression!returnExpr "(" (Expressions ","?)? ")"
 	| vecExprs: Expression "[" Expression? "]"
 	> left Expression "." Literal_integer
 	> left exprPath: Expression "." Path_generic_args_with_colons
