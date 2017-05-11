@@ -992,12 +992,6 @@ syntax Expression_qualified_path
 		Generic_args ("as" Trait_ref)? "\>" "::" Identifier Generic_args
 	;
 
-syntax Lambda_expression
-	= "|" (("&" "mut"?)? ":")? "|" Ret_type? Expression
-	| "|" Inferrable_params "|" Ret_type? Expression
-	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type? Expression
-	| "|" ":" Inferrable_params "|" Ret_type? Expression
-	;
 
 syntax Lambda_expression_nostruct
 	= "||" Ret_type? Expression!pathStruct
