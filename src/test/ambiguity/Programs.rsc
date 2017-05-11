@@ -8,7 +8,7 @@ import analysis::grammars::Ambiguity;
 import lang::rust::\syntax::Rust;
 import \test::func::LoadFile;
 
-import Forest;
+//import Forest;
 
 test bool GuessingGame(){
 	str input_file = LoadFile("guessing_game");
@@ -174,9 +174,6 @@ test bool CommitCvs(){
 test bool Troublesome(){
 	str input_file = LoadFile("troublesome");
 	Tree parse_tree = [start[Crate]]input_file;
-	renderParsetree([start[Crate]]input_file);
-	app = forest([start[Crate]]input_file);
-	app.serve();
 	
 	return /amb(_) !:= parse_tree;
 }
