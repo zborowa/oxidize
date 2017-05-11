@@ -178,12 +178,12 @@ syntax Item_const
 	;
 
 syntax Item_macro
-	= macro_rules: Macro_rules
-	> item_macro: Path_expression  path_expression "!" Identifier? identifier 
+	= macro_rules: Macro_rules macro_rules
+	> parens_macro: Path_expression  path_expression "!" Identifier? identifier 
 		Parens_delimited_token_trees paren_token_trees ";"
-	| item_macro: Path_expression path_expression "!" Identifier? identifier 
+	| braces_macro: Path_expression path_expression "!" Identifier? identifier 
 		Braces_delimited_token_trees brace_token_trees
-	| item_macro: Path_expression path_expression "!" Identifier? identifier 
+	| brackets_macro: Path_expression path_expression "!" Identifier? identifier 
 		Brackets_delimited_token_trees bracket_token_trees ";"
 	;
 	
