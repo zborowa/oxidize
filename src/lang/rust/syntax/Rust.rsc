@@ -979,23 +979,13 @@ syntax Expression
 //	| procExpr: "proc" "(" Inferrable_params? ")" Expression
 //	;
 
+
+
 syntax Expression_qualified_path
 	= "\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
 		("::" Generic_args)?
 	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
-		("as" Trait_ref)? "\>" "::" Identifier
-	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
-		Generic_args ("as" Trait_ref)? "\>" "::" Identifier
-	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
-		("as" Trait_ref)? "\>" Identifier Generic_args
-	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
-		Generic_args ("as" Trait_ref)? "\>" "::" Identifier Generic_args
-	;
-
-
-
-syntax Proc_expression_nostruct
-	= "proc" "(" Inferrable_params? ")" Expression!pathStruct
+		Generic_args? ("as" Trait_ref)? "\>" "::" Identifier Generic_args?
 	;
 
 syntax Vector_expression
