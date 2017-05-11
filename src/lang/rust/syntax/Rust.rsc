@@ -993,13 +993,6 @@ syntax Expression_qualified_path
 	;
 
 
-syntax Lambda_expression_nostruct
-	= "||" Ret_type? Expression!pathStruct
-	| "|" (("&" "mut"?)? ":")? "|" Ret_type? Expression!pathStruct
-	| "|" Inferrable_params "|" Ret_type? Expression!pathStruct
-	| "|" "&" "mut"? ":" Inferrable_params "|" Ret_type? Expression!pathStruct
-	| "|" ":" Inferrable_params "|" Ret_type? Expression!pathStruct
-	;
 
 syntax Proc_expression_nostruct
 	= "proc" "(" Inferrable_params? ")" Expression!pathStruct
