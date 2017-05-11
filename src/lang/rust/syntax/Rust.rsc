@@ -180,11 +180,11 @@ syntax Item_const
 syntax Item_macro
 	= macro_rules: Macro_rules macro_rules
 	> parens_macro: Path_expression  path_expression "!" Identifier? identifier 
-		Parens_delimited_token_trees paren_token_trees ";"
+		Parens_delimited_token_trees paren_trees ";"
 	| braces_macro: Path_expression path_expression "!" Identifier? identifier 
-		Braces_delimited_token_trees brace_token_trees
+		Braces_delimited_token_trees brace_trees
 	| brackets_macro: Path_expression path_expression "!" Identifier? identifier 
-		Brackets_delimited_token_trees bracket_token_trees ";"
+		Brackets_delimited_token_trees bracket_trees ";"
 	;
 	
 syntax Macro_rules 
@@ -490,6 +490,7 @@ syntax Generic_params
 syntax Where_clause
 	= where_clause:"where" {Where_predicate ","}+ ","?
 	;
+	
 syntax Where_predicate
 	= where_predicate:("for" "\<" Lifetime "\>")? Lifetime ":" Bounds
 	| where_predicate:("for" "\<" Lifetime "\>")? Type ":" Bounds_sequence?
@@ -660,7 +661,7 @@ syntax Type_sums
 	;
 
 syntax Type_sum
-	= Attributes_and_vis attr_vis Type type ("+" Bounds_sequence?)?
+	= Outer_attribute* outer_attrs Type type ("+" Bounds_sequence?)?
 	;
 
 syntax Type_primitive_sum
@@ -692,7 +693,7 @@ syntax Binding
 	;
 
 syntax Type_param
-	= Identifier identifier ("?" Identifier)? Type_param_bounds? type ("=" Type_sum sum)?
+	= Identifier identifier ("?" Identifier)? Type_param_bounds? ("=" Type_sum)?
 	;
 
 syntax Bounds
@@ -711,19 +712,17 @@ syntax Ltbounds
 	;
 
 syntax Lifetimes
-	//= Lifetime_and_bounds
-	//| Lifetimes "," Lifetime_and_bounds
 	= {Lifetime_and_bounds ","}+
 	;
 
 syntax Lifetime_and_bounds
-	= "\'" Identifier (":" Ltbounds)?
-	| "\'static"
+	= lifetime_bounds: "\'" /*Identifier identifier*/ (":" Ltbounds bounds)?
+	| static_lifetime: "\'static"
 	;
 
 lexical Lifetime
-	= "\'" Identifier
-	| "\'static"
+	= lifetime: "\'" Identifier identifier
+	| static_lifetime: "\'static"
 	;
 
 syntax Trait_ref
@@ -782,8 +781,9 @@ syntax Expression
 	| blockExpr: Block_expression
 	| Expression_qualified_path
 	> right ( "box" "(" Expression? ")" Expression
-			| "box" Expression
+			| "box" Expression!parenExprs
 			)
+	
 	| Expression? ".." Expression?
 	> left  ( Expression "*" Expression
 			| Expression "/" Expression
@@ -810,14 +810,14 @@ syntax Expression
 			| Expression "\>\>" Expression
 			> Expression "&" !>> "&" Expression
 			> Expression "^" Expression
-			> Expression "|" !>> "|" Expression
+			> Expression "|" Expression
 			> Expression "\<" Expression
 			| Expression "\>" Expression
 			| Expression "\<=" Expression
 			| Expression "\>=" Expression
 			> Expression "==" Expression
 			| Expression "!=" Expression
-			> Expression "||" Expression
+			> lazyOr: Expression "||" Expression
 			> Expression "&&" Expression
 			)
 	| right Expression "as" Type 
@@ -845,7 +845,7 @@ syntax Expression
 			)
 	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
 	;
-	
+
 // org
 //syntax Expression
 //	= procExpr: "proc" "(" Inferrable_params? ")" Expression
@@ -914,7 +914,7 @@ syntax Expression
 //	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
 //	;
 
-// flipped org
+// org flipped
 //syntax Expression
 //	= Literal
 //	| Path_expression
@@ -983,13 +983,17 @@ syntax Expression
 //	| procExpr: "proc" "(" Inferrable_params? ")" Expression
 //	;
 
-
-
 syntax Expression_qualified_path
 	= "\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
 		("::" Generic_args)?
 	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
-		Generic_args? ("as" Trait_ref)? "\>" "::" Identifier Generic_args?
+		("as" Trait_ref)? "\>" "::" Identifier
+	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
+		Generic_args ("as" Trait_ref)? "\>" "::" Identifier
+	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
+		("as" Trait_ref)? "\>" Identifier Generic_args
+	| "\<\<" Type_sum ("as" Trait_ref)? "\>" "::" Identifier 
+		Generic_args ("as" Trait_ref)? "\>" "::" Identifier Generic_args
 	;
 
 syntax Vector_expression
