@@ -48,6 +48,7 @@ public void ParseStats(list[loc] files){
 	list[loc] amb = [];
 
 	for(file <- files){
+		println(file);
 		str input_file = readFile(file);
 		
 		try{
@@ -62,7 +63,7 @@ public void ParseStats(list[loc] files){
 	}
 	
 	println("Failed files:");
-	iprintln(take(8, failed));
+	iprintln(take(16, failed));
 	
 	println("Amb files:");
 	iprintln(take(8, amb));
