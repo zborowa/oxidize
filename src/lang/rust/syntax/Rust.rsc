@@ -843,7 +843,8 @@ syntax Expression
 			)
 	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
 	;
-
+	
+// org
 //syntax Expression
 //	= procExpr: "proc" "(" Inferrable_params? ")" Expression
 //	| blockStmt: Block
@@ -911,6 +912,7 @@ syntax Expression
 //	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
 //	;
 
+// flipped org
 //syntax Expression
 //	= Literal
 //	| Path_expression
