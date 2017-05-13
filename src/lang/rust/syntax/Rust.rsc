@@ -669,9 +669,8 @@ syntax Type_param_bounds
 	;
 
 syntax Bounds_sequence
-	//= Poly_bound
-	//| Bounds_sequences "+" Poly_bound
-	= {Poly_bound "+"}+
+	= Poly_bound
+	| Bounds_sequence "+" Poly_bound
 	;
 
 syntax Poly_bound
