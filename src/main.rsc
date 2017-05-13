@@ -5,6 +5,7 @@ module main
 // Standard libraries
 import Prelude;
 import analysis::grammars::Ambiguity;
+import ParseTree;
 import vis::ParseTree;
 
 // Custom libraries
