@@ -2,11 +2,6 @@
 
 module lang::rust::\syntax::Rust
 
-import Prelude;
-import vis::ParseTree;
-import analysis::grammars::Ambiguity;
-
-
 layout Whitespace 
 	= WhiteSpaceOrComment* !>> [\ \t\r\n] !>> "//" !>> "/*"
 	;
