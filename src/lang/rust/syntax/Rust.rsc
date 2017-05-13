@@ -710,7 +710,7 @@ syntax Lifetimes
 	;
 
 syntax Lifetime_and_bounds
-	= lifetime_bounds: "\'" /*Identifier identifier*/ (":" Ltbounds bounds)?
+	= lifetime_bounds: "\'" Identifier identifier (":" Ltbounds bounds)?
 	| static_lifetime: "\'static"
 	;
 
