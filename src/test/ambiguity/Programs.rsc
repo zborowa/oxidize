@@ -1,14 +1,11 @@
 module \test::ambiguity::Programs
 
 import Prelude;
-import Exception;
 import vis::ParseTree;
 import analysis::grammars::Ambiguity;
 
 import lang::rust::\syntax::Rust;
 import \test::func::LoadFile;
-
-//import Forest;
 
 test bool GuessingGame(){
 	str input_file = LoadFile("guessing_game");
