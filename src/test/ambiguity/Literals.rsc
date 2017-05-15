@@ -1,6 +1,7 @@
 module \test::ambiguity::Literals
 
 import Prelude;
+import ParseTree;
 import vis::ParseTree;
 import analysis::grammars::Ambiguity;
 
