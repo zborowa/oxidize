@@ -4,13 +4,14 @@ module main
 
 // Standard libraries
 import Prelude;
-import analysis::grammars::Ambiguity;
 import ParseTree;
+import Exception;
 import vis::ParseTree;
+import analysis::grammars::Ambiguity;
 
 // Custom libraries
 import lang::rust::\syntax::Rust;
-//import \test::func::LoadFile;
+import \test::func::LoadFile;
 
 //
 //lexical Aas = [a-z]+ !>> [a-z];
@@ -46,9 +47,10 @@ public list[loc] Walk(loc a, str pattern){
 public void ParseStats(list[loc] files){
 	list[loc] parsed = [];
 	list[loc] failed = [];
-	list[loc] amb = [];
+	list[loc] ambi = [];
 
 	for(file <- files){
+		// Show the file to parse
 		println(file);
 		str input_file = readFile(file);
 		
@@ -57,7 +59,7 @@ public void ParseStats(list[loc] files){
 			parsed += file;
 			
 			if(/amb(_) := parse_tree){
-				amb += file;
+				ambi += file;
 			}
 		}catch ParseError(_):
 			failed += file;
@@ -67,10 +69,10 @@ public void ParseStats(list[loc] files){
 	iprintln(take(16, failed));
 	
 	println("Amb files:");
-	iprintln(take(8, amb));
+	iprintln(take(8, ambi));
 	
 	println("Total files: 	<size(files)>");
 	println("Parsed: 	<size(parsed)>");
 	println("Failed: 	<size(failed)>");
-	println("Amb: 		<size(amb)>");
+	println("Amb: 		<size(ambi)>");
 }
