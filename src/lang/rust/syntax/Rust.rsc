@@ -21,14 +21,14 @@ keyword Rust_keywords
 	| "enum" | "extern" | "false" | "final" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "macro" | "match" 
 	| "mod" | "move" | "mut" | "offsetof" | "override" | "priv" | "proc" | "pub" | "pure" | "ref" | "return" | "Self" 
 	| "self" | "sizeof" | "static" | "struct" | "super" | "trait" | "true" | "type" | "typeof" | "unsafe" | "unsized" 
-	| "use" | "virtual" | "where" | "while" | "yield" | "macro_rules"
+	| "use" | "virtual" | "where" | "while" | "yield"
 	;
 
 // Identifier regex not to be confused with syntax Identifier present in the file
 lexical Identifier
 	= 	(
 			[a-z A-Z 0-9 \u0080-\u00ff _] !<< 
-			[a-z A-Z \u0080-\u00ff $ _] [a-z A-Z 0-9 \u0080-\u00ff _]* !>> 
+			[a-z A-Z \u0080-\u00ff _] [a-z A-Z 0-9 \u0080-\u00ff _]* !>> 
 			[a-z A-Z 0-9 \u0080-\u00ff _]
 		) \ Rust_keywords
 	;
@@ -172,45 +172,25 @@ syntax Item_static
 syntax Item_const
 	= item_const:"const" Identifier identifier ":" Type type "=" Expression expression ";"
 	;
+	
+syntax Macro_tokens 
+	= ![{}()\[\]\"]
+	| Macro_enclosure
+	| String
+	;
+
+syntax Macro_enclosure
+	= "{" Macro_tokens* "}"
+	| "(" Macro_tokens* ")"
+	| "[" Macro_tokens* "]"
+	;
 
 syntax Item_macro
-	= macro_rules: Macro_rules macro_rules
-	> parens_macro: Path_expression  path_expression "!" Identifier? identifier 
-		Parens_delimited_token_trees paren_trees ";"
-	| braces_macro: Path_expression path_expression "!" Identifier? identifier 
-		Braces_delimited_token_trees brace_trees
-	| brackets_macro: Path_expression path_expression "!" Identifier? identifier 
-		Brackets_delimited_token_trees bracket_trees ";"
+	= macro_rules: Path_expression "!" Identifier? Macro_enclosure ";"?
 	;
 	
 syntax Macro_rules 
-	= "macro_rules" "!" Identifier "(" Macro_rule* ")" ";"?
-	| "macro_rules" "!" Identifier "{" Macro_rule* "}" ";"?
-	;
-	
-syntax Macro_rule
-	= "(" {Matcher ","}* ")" "=\>" "(" Matcher* ")" ";"?
-	| "(" {Matcher ","}* ")" "=\>" "{" Matcher* "}" ";"?
-	;
-	
-syntax Matcher
-	= "(" {Matcher ","}* ")" Sep_token?
-	| "[" {Matcher ","}* "]" Sep_token?
-	| "{" {Matcher ","}* "}" Sep_token?
-	| "$" "(" {Matcher ","}* ")" Sep_token? ("*" | "+")
-	| "$" Identifier (":" Identifier)?
-	| Mod_item
-	| Expression
-	// | // Grammar states a non_special_token
-	;
-	
-syntax Sep_token
-	= ";"
-	| ","
-	;
-
-lexical All
-	= ![]*
+	= "macro_rules" "!" Identifier Macro_enclosure ";"?
 	;
 
 syntax View_item
