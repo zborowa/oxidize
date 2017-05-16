@@ -755,7 +755,12 @@ syntax Expression
 	> right ( "box" "(" Expression? ")" Expression
 			| "box" Expression!parenExprs
 			)
-	
+	> right ( "-" Expression // TODO: is this the right level?
+			| "!" Expression
+			| "*" Expression
+			| "&" "mut"? Expression
+			| "&&" "mut"? Expression
+			)
 	| Expression? ".." Expression?
 	> left  ( Expression "*" Expression
 			| Expression "/" Expression
@@ -778,22 +783,24 @@ syntax Expression
 			
 	> left  ( Expression "+" Expression
 			| Expression "-" Expression
-			> Expression "\<\<" Expression
-			| Expression "\>\>" Expression
-			> Expression "&" !>> "&" Expression
-			> Expression "^" Expression
-			> Expression "|" Expression
-			> Expression "\<" Expression
-			| Expression "\>" Expression
+			)
+    > left ( Expression "\<\<" Expression
+           | Expression "\>\>" Expression
+           )
+    > Expression "&" !>> "&" Expression
+	> Expression "^" Expression
+	> Expression "|" Expression
+	> left  ( Expression "\<" Expression
+	        | Expression "\>" Expression
 			| Expression "\<=" Expression
 			| Expression "\>=" Expression
-			> Expression "==" Expression
-			| Expression "!=" Expression
-			> lazyOr: Expression "||" Expression
-			> Expression "&&" Expression
 			)
-	| right Expression "as" Type 
-			
+	> left  ( Expression "==" Expression
+			| Expression "!=" Expression
+			)
+	> lazyOr: Expression "||" Expression
+	> Expression "&&" Expression
+	> right Expression "as" Type 		
 	> right ( breakIdent: "break" Identifier?
 			| returnExpr: "return" Expression?
 			| contnIdent: "continue" Identifier?
@@ -809,12 +816,7 @@ syntax Expression
 	| "self"
 	> Path_expression
 	| Literal
-	> right ( "-" Expression
-			| "!" Expression
-			| "*" Expression
-			| "&" "mut"? Expression
-			| "&&" "mut"? Expression
-			)
+	
 	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
 	;
 
