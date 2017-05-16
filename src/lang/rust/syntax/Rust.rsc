@@ -1201,6 +1201,11 @@ syntax Token_tree
 	> expr: Expression!parenExpr expr
 	;
 
+	syntax Sep_token
+	= ";"
+	| ","
+	;
+
 syntax Delimited_token_trees
 	= paren_token_trees: Parens_delimited_token_trees
 	| braces_token_trees: Braces_delimited_token_trees
