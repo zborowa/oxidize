@@ -89,7 +89,7 @@ lexical Hexit
 	;
 	
 lexical UnicodeEscape
-	= "\\"   [n r t \\ \' \" 0 ?]
+	= "\\"   [n r t \\ \' \" ?]
 	| "\\"   [xX] [0-9 a-f A-F] [0-9 a-f A-F]
 	| "\\u{" Hexit Hexit Hexit Hexit Hexit Hexit "}"
 	| "\\u{" Hexit Hexit Hexit Hexit Hexit "}"
