@@ -746,28 +746,50 @@ syntax Macro_expression
 	| Path_expression "!" Identifier? Brackets_delimited_token_trees
 	;
 	
-// new
+// flipped test
 syntax Expression
-	= procExpr: "proc" "(" Inferrable_params? ")" Expression
-	| blockStmt: Block
-	| blockExpr: Block_expression
-	| Expression_qualified_path
-	> right ( "box" "(" Expression? ")" Expression
-			| "box" Expression!parenExprs
+	= lit: Literal
+	> pathExpr: Path_expression
+	| self: "self"
+	| macroExpr: Macro_expression
+	| pathStruct: Path_expression "{" Struct_expression_fields? "}"
+	> left exprPath: Expression "." Path_generic_args_with_colons
+	> left exprInt: Expression "." Literal_integer
+	| vecExprs: Expression "[" Expression? "]"
+	> parenExprs: Expression!returnExpr "(" (Expressions ","?)? ")"
+	| parenExpr: "(" (Expressions ","?)? ")"
+	> vecExpr: "[" Vector_expression "]"
+	> right ( contnIdent: "continue" Identifier?
+			| returnExpr: "return" Expression?
+			| breakIdent: "break" Identifier?
 			)
-	> right ( "-" Expression // TODO: is this the right level?
-			| "!" Expression
-			| "*" Expression
-			| "&" "mut"? Expression
-			| "&&" "mut"? Expression
-			)
-	| Expression? ".." Expression?
+			
 	> left  ( Expression "*" Expression
 			| Expression "/" Expression
 			| Expression "%" Expression
 			)
+	> right   Expression "as" Type
+	> left  ( Expression "+" Expression
+			| Expression "-" Expression
+			)
+	> left  ( Expression "\<\<" Expression
+            | Expression "\>\>" Expression)
+	> left    Expression "&" !>> "&" Expression // & not followed by &
+	> left 	  Expression "^" Expression
+	> left    Expression "|" Expression	
+	> left  ( Expression "\<" Expression
+	        | Expression "\>" Expression
+			| Expression "\<=" Expression
+			| Expression "\>=" Expression)
+	> left  ( Expression "==" Expression
+			| Expression "!=" Expression)
+			
+	// Problem example
+	// a() && b() && c()
+	> left exprOrOr: Expression "||" Expression // Not sure about this assoc
+	> left exprAndAnd: Expression "&&" Expression // Not sure about this assoc
 	
-	> right Expression "\<-" Expression
+	> right   Expression "\<-" Expression
 	> right ( Expression "=" Expression
 			| Expression "\<\<=" Expression
 			| Expression "\>\>=" Expression
@@ -778,47 +800,98 @@ syntax Expression
 			| Expression "*=" Expression
 			| Expression "/=" Expression
 			| Expression "^=" Expression
-			| Expression "%=" Expression
-			)
+			| Expression "%=" Expression)
 			
-	> left  ( Expression "+" Expression
-			| Expression "-" Expression
-			)
-    > left ( Expression "\<\<" Expression
-           | Expression "\>\>" Expression
-           )
-    > Expression "&" !>> "&" Expression
-	> Expression "^" Expression
-	> Expression "|" Expression
-	> left  ( Expression "\<" Expression
-	        | Expression "\>" Expression
-			| Expression "\<=" Expression
-			| Expression "\>=" Expression
-			)
-	> left  ( Expression "==" Expression
-			| Expression "!=" Expression
-			)
-	> lazyOr: Expression "||" Expression
-	> Expression "&&" Expression
-	> right Expression "as" Type 		
-	> right ( breakIdent: "break" Identifier?
-			| returnExpr: "return" Expression?
-			| contnIdent: "continue" Identifier?
-			)
-	> vecExpr: "[" Vector_expression "]"
-	| parenExpr: "(" (Expressions ","?)? ")"
-	> parenExprs: Expression!returnExpr "(" (Expressions ","?)? ")"
-	| vecExprs: Expression "[" Expression? "]"
-	> left Expression "." Literal_integer
-	> left exprPath: Expression "." Path_generic_args_with_colons
-	| pathStruct: Path_expression "{" Struct_expression_fields? "}"
-	| Macro_expression
-	| "self"
-	> Path_expression
-	| Literal
-	
-	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
+	> Expression? ".." Expression?
+	> right "box" "(" Expression? ")" Expression
+	> right "box" Expression!parenExprs
+	> Expression_qualified_path
+	| blockExpr: Block_expression
+	| blockStmt: Block
+
+	// This is a problem. It connects with e.g. andand
+	> exExpr: "!" Expression
+	> starExpr: "*" Expression
+	> minExpr: "-" Expression
+	> andExpr: "&" "mut"? Expression
+	> andandExpr: "&&" "mut"? Expression
+	> lambda: "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
+	> procExpr: "proc" "(" Inferrable_params? ")" Expression
 	;
+	
+// new / current
+//syntax Expression
+//	= procExpr: "proc" "(" Inferrable_params? ")" Expression
+//	| blockStmt: Block
+//	| blockExpr: Block_expression
+//	| Expression_qualified_path
+//	> right ( "box" "(" Expression? ")" Expression
+//			| "box" Expression!parenExprs
+//			)
+//	> right ( "-" Expression // TODO: is this the right level?
+//			| "!" Expression
+//			| "*" Expression
+//			| "&" "mut"? Expression
+//			| "&&" "mut"? Expression
+//			)
+//	| Expression? ".." Expression?
+//	> left  ( Expression "*" Expression
+//			| Expression "/" Expression
+//			| Expression "%" Expression
+//			)
+//	
+//	> right Expression "\<-" Expression
+//	> right ( Expression "=" Expression
+//			| Expression "\<\<=" Expression
+//			| Expression "\>\>=" Expression
+//			| Expression "-=" Expression
+//			| Expression "&=" Expression
+//			| Expression "|=" Expression
+//			| Expression "+=" Expression
+//			| Expression "*=" Expression
+//			| Expression "/=" Expression
+//			| Expression "^=" Expression
+//			| Expression "%=" Expression
+//			)
+//			
+//	> left  ( Expression "+" Expression
+//			| Expression "-" Expression
+//			)
+//    > left ( Expression "\<\<" Expression
+//           | Expression "\>\>" Expression
+//           )
+//    > Expression "&" !>> "&" Expression
+//	> Expression "^" Expression
+//	> Expression "|" Expression
+//	> left  ( Expression "\<" Expression
+//	        | Expression "\>" Expression
+//			| Expression "\<=" Expression
+//			| Expression "\>=" Expression
+//			)
+//	> left  ( Expression "==" Expression
+//			| Expression "!=" Expression
+//			)
+//	> lazyOr: Expression "||" Expression
+//	> left Expression "&&" Expression
+//	> right Expression "as" Type 		
+//	> right ( breakIdent: "break" Identifier?
+//			| returnExpr: "return" Expression?
+//			| contnIdent: "continue" Identifier?
+//			)
+//	> vecExpr: "[" Vector_expression "]"
+//	| parenExpr: "(" (Expressions ","?)? ")"
+//	> parenExprs: Expression!returnExpr "(" (Expressions ","?)? ")"
+//	| vecExprs: Expression "[" Expression? "]"
+//	> left Expression "." Literal_integer
+//	> left exprPath: Expression "." Path_generic_args_with_colons
+//	| pathStruct: Path_expression "{" Struct_expression_fields? "}"
+//	| Macro_expression
+//	| "self"
+//	> Path_expression
+//	| Literal
+//	
+//	> "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
+//	;
 
 // org
 //syntax Expression
