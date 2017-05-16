@@ -516,7 +516,8 @@ syntax Pattern
 	| Path_expression "{" Pattern_structure "}"
 	| Path_expression "(" ".." ")"
 	| Path_expression "(" {Pattern ","}+? ")"
-	| Path_expression "!" Identifier? Delimited_token_trees
+	| Item_macro
+	//| Path_expression "!" Identifier? Delimited_token_trees
 	| Binding_mode Identifier
 	| Binding_mode? Identifier "@" Pattern
 	| "box" Pattern
