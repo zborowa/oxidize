@@ -26,8 +26,11 @@ import \test::func::LoadFile;
 // TODO: if (/amb(_) := t) { do your thing; } check in a loop if all std of Rust are parsable
 
 public void main(){
-	list[loc] files = Walk(|project://oxidize/rust|, ".rs");
+	datetime project_start = now();
+	list[loc] files = Walk(|project://oxidize/cvs-rs|, ".rs");
 	ParseStats(files);
+	Duration duration = now() - project_start;
+	println("<duration.hours>h <duration.minutes>m <duration.seconds>s <duration.milliseconds>ms");
 }
 
 public list[loc] Walk(loc a, str pattern){
