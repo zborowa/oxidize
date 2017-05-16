@@ -188,10 +188,6 @@ syntax Macro_enclosure
 syntax Item_macro
 	= macro_rules: Path_expression "!" Identifier? Macro_enclosure ";"?
 	;
-	
-syntax Macro_rules 
-	= "macro_rules" "!" Identifier Macro_enclosure ";"?
-	;
 
 syntax View_item
 	= Use_item
