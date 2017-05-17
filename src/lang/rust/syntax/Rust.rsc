@@ -748,7 +748,8 @@ syntax Macro_expression
 	
 // flipped test
 syntax Expression
-	= lit: Literal
+	= exExpr: "!" Expression
+	> lit: Literal
 	> pathExpr: Path_expression
 	| self: "self"
 	| macroExpr: Macro_expression
@@ -759,35 +760,37 @@ syntax Expression
 	> parenExprs: Expression!returnExpr "(" (Expressions ","?)? ")"
 	| parenExpr: "(" (Expressions ","?)? ")"
 	> vecExpr: "[" Vector_expression "]"
-	> right ( contnIdent: "continue" Identifier?
-			| returnExpr: "return" Expression?
-			| breakIdent: "break" Identifier?
-			)
-			
-	> left  ( Expression "*" Expression
+	> contnIdent: "continue" Identifier?
+	| returnExpr: "return" Expression?
+	| breakIdent: "break" Identifier?
+	
+	> starExpr: "*" Expression
+	| left  ( Expression "*" Expression
 			| Expression "/" Expression
-			| Expression "%" Expression
-			)
+			| Expression "%" Expression)
+			
 	> right   Expression "as" Type
-	> left  ( Expression "+" Expression
-			| Expression "-" Expression
-			)
+	> minExpr: "-" Expression
+	| left  ( Expression "+" Expression
+			| Expression "-" Expression)
+			
 	> left  ( Expression "\<\<" Expression
             | Expression "\>\>" Expression)
-	> left    Expression "&" !>> "&" Expression // & not followed by &
+            
+    > andExpr: "&" !>> "&" "mut"? Expression
+	| left    Expression "&" !>> "&" Expression // & not followed by &
 	> left 	  Expression "^" Expression
 	> left    Expression "|" Expression	
 	> left  ( Expression "\<" Expression
 	        | Expression "\>" Expression
 			| Expression "\<=" Expression
 			| Expression "\>=" Expression)
-	> left  ( Expression "==" Expression
-			| Expression "!=" Expression)
+	> left  ( exprEqEq: Expression "==" Expression
+			| exprNe: Expression "!=" Expression)
 			
-	// Problem example
-	// a() && b() && c()
-	> left exprOrOr: Expression "||" Expression // Not sure about this assoc
-	> left exprAndAnd: Expression "&&" Expression // Not sure about this assoc
+	> andandExpr: "&&" "mut"? Expression
+	| left exprAndAnd: Expression "&&" Expression
+	> left exprOrOr: Expression "||" Expression
 	
 	> right   Expression "\<-" Expression
 	> right ( Expression "=" Expression
@@ -802,19 +805,17 @@ syntax Expression
 			| Expression "^=" Expression
 			| Expression "%=" Expression)
 			
-	> Expression? ".." Expression?
-	> right "box" "(" Expression? ")" Expression
-	> right "box" Expression!parenExprs
+	> left Expression ".." Expression
+	| Expression ".."
+	| ".." Expression
+	| ".."
+	
+	> "box" "(" Expression? ")" Expression
+	> "box" Expression!parenExprs
 	> Expression_qualified_path
 	| blockExpr: Block_expression
 	| blockStmt: Block
 
-	// This is a problem. It connects with e.g. andand
-	> exExpr: "!" Expression
-	> starExpr: "*" Expression
-	> minExpr: "-" Expression
-	> andExpr: "&" "mut"? Expression
-	> andandExpr: "&&" "mut"? Expression
 	> lambda: "move"? "|" (("&" "mut"?)? ":")? Inferrable_params? "|" Ret_type? Expression
 	> procExpr: "proc" "(" Inferrable_params? ")" Expression
 	;
