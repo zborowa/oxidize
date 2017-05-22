@@ -1,0 +1,24 @@
+444dcfef565a5cb9559f014ea9101816e6b06d3a
+Rust:
+	Total files:    8499
+	Parsed:         6880
+	Failed:         1619
+	Amb:            731
+	0h 4m 36s 370ms
+
+% % % % % % % % % % % % % % % % 
+
+2882188325b19084567d21a1f04735fe0ed1fadd
+Rust:
+	Total files:    8499
+	Parsed:         6889
+	Failed:         1610
+	Amb:            750
+	0h 4m 20s 681ms
+
+CVS-RS:
+	Total files:    14
+	Parsed:         14
+	Failed:         0
+	Amb:            8
+	0h 0m 6s 935ms
