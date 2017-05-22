@@ -774,10 +774,10 @@ syntax Expression
 			| Expression "/" Expression
 			| Expression "%" Expression)
 			
-	> right   Expression "as" Type
+	> right   Expression!returnExpr "as" Type
 	> minExpr: "-" Expression
 	| left  ( Expression "+" Expression
-			| Expression "-" Expression)
+			| Expression!returnExpr "-" Expression)
 			
 	> left  ( Expression "\<\<" Expression
             | Expression "\>\>" Expression)
