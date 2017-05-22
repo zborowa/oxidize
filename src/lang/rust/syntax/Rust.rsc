@@ -762,7 +762,7 @@ syntax Expression
 	> left exprPath: Expression "." Path_generic_args_with_colons
 	> left exprInt: Expression "." Literal_integer
 	| vecExprs: Expression "[" Expression? "]"
-	> parenExprs: Expression!returnExpr "(" (Expressions ","?)? ")"
+	> parenExprs: Expression!returnExpr NoCurlyBefore "(" (Expressions ","?)? ")"
 	| parenExpr: "(" (Expressions ","?)? ")"
 	> vecExpr: "[" Vector_expression "]"
 	> contnIdent: "continue" Identifier?
@@ -770,7 +770,7 @@ syntax Expression
 	| breakIdent: "break" Identifier?
 	
 	> starExpr: "*" Expression
-	| left  ( Expression "*" Expression
+	| left  ( Expression NoCurlyBefore "*" Expression
 			| Expression "/" Expression
 			| Expression "%" Expression)
 			
@@ -783,7 +783,7 @@ syntax Expression
             | Expression "\>\>" Expression)
             
     > andExpr: "&" !>> "&" "mut"? Expression
-	| left    Expression "&" !>> "&" Expression // & not followed by &
+	| left    Expression NoCurlyBefore "&" !>> "&" Expression // & not followed by &
 	> left 	  Expression "^" Expression
 	> left    Expression "|" Expression	
 	> left  ( Expression "\<" Expression
@@ -794,7 +794,7 @@ syntax Expression
 			| exprNe: Expression "!=" Expression)
 			
 	> andandExpr: "&&" "mut"? Expression
-	| left exprAndAnd: Expression "&&" Expression
+	| left exprAndAnd: Expression NoCurlyBefore "&&" Expression
 	> left exprOrOr: Expression "||" Expression
 	
 	> right   Expression "\<-" Expression
