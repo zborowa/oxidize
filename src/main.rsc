@@ -61,7 +61,8 @@ public void ParseStats(list[loc] files){
 			Tree parse_tree = [start[Crate]]input_file;
 			parsed += file;
 			
-			if(/amb(_) := parse_tree){
+			if(/t:amb(_) := parse_tree){ 
+			    //println("AMB: \'<t>\'");
 				ambi += file;
 			}
 		}catch ParseError(_):
