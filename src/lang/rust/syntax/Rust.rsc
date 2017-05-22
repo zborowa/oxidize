@@ -185,9 +185,9 @@ syntax Macro_tokens
 	;
 
 syntax Macro_enclosure
-	= "{" Macro_tokens* "}"
-	| "(" Macro_tokens* ")"
-	| "[" Macro_tokens* "]"
+	= bracket "{" Macro_tokens* "}"
+	| bracket "(" Macro_tokens* ")"
+	| bracket "[" Macro_tokens* "]"
 	;
 
 syntax Item_macro
@@ -266,8 +266,8 @@ syntax Enum_def
 	;
 
 syntax Enum_args
-	= enum_args: "{" {Struct_decl_field ","}* struct_decl_fields ","? "}"
-	| enum_args: "(" {Type_sum ","}* type_sums ")"
+	= bracket enum_args: "{" {Struct_decl_field ","}* struct_decl_fields ","? "}"
+	| bracket enum_args: "(" {Type_sum ","}* type_sums ")"
 	| enum_args: "=" Expression expression
 	;
 
