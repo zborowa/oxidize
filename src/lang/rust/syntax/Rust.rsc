@@ -2,6 +2,11 @@
 
 module lang::rust::\syntax::Rust
 
+
+layout NoCurlyBefore 
+  = @manual [}] !<< WhiteSpaceOrComment* !>> [\ \t\r\n] !>> "//" !>> "/*"
+  ;
+
 layout Whitespace 
 	= WhiteSpaceOrComment* !>> [\ \t\r\n] !>> "//" !>> "/*"
 	;
