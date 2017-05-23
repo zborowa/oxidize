@@ -682,7 +682,7 @@ syntax Binding
 	;
 
 syntax Type_param
-	= Identifier identifier ("?" Identifier)? Type_param_bounds? ("=" Type_sum)?
+	= ("#" "[" Meta_item meta_item "]")? Identifier identifier ("?" Identifier)? Type_param_bounds? ("=" Type_sum)?
 	;
 
 syntax Bounds
