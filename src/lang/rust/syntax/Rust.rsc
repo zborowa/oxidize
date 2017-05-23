@@ -51,7 +51,7 @@ lexical Literal_char
 	;
 
 lexical Literal_integer
-	= [0-9] [0-9 _]* ("." ("." | [a-zA-Z]))? Numeric_type?
+	= [0-9] [0-9 _]* /*("." ("." | [a-zA-Z]))?*/ Numeric_type?
 	| "0b"  [0 1 _]+ Numeric_type?
 	| "0o"  [0-8 _]+ Numeric_type?
 	| "0x"  [0-9 a-f A-F _]+ Numeric_type?
