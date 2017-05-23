@@ -827,7 +827,7 @@ syntax Expression
 	| ".."
 	
 	> "box" "(" Expression? ")" Expression
-	> "box" Expression!parenExprs
+	> "box" Expression!parenExpr
 	> Expression_qualified_path
 	| blockExpr: Block_expression
 	| blockStmt: Block
