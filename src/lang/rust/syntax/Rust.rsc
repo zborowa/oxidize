@@ -759,8 +759,8 @@ syntax Path_generic_args_with_colons
 	;
 
 syntax Macro_expression
-	= Path_expression "!" Identifier? Parens_delimited_token_trees
-	| Path_expression "!" Identifier? Brackets_delimited_token_trees
+	= Path_expression "!" Identifier? Macro_parens
+	| Path_expression "!" Identifier? Macro_brackets
 	;
 
 syntax Expression
