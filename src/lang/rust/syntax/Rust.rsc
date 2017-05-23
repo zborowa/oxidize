@@ -492,6 +492,7 @@ syntax Type_params
 syntax Path_no_types_allowed
 	= view_path:"::"? Identifier
 	| view_path:"::"? "self"
+	| view_path:"::"? "super"
 	| Path_no_types_allowed "::" Identifier
 	;
 
