@@ -221,11 +221,11 @@ syntax Use_item
 	;
 
 syntax View_path
-	= view_path_simple:Path_no_types_allowed
-	| view_path_list:Path_no_types_allowed? "::" "{" (Identifiers_or_self ","?)? "}"
-	| view_path_glob:Path_no_types_allowed  "::" "*"
-	| view_path_list_empty:						 "{" (Identifiers_or_self ","?)? "}"
-	| view_path_simple:Path_no_types_allowed "as" Identifier
+	= view_path_simple: Path_no_types_allowed
+	| view_path_list: Path_no_types_allowed? "::" "{" (Identifiers_or_self ","?)? "}"
+	| view_path_glob: Path_no_types_allowed  "::" "*"
+	| view_path_list_empty: "{" (Identifiers_or_self ","?)? "}"
+	| view_path_simple: Path_no_types_allowed "as" Identifier
 	;
 
 syntax Block_item
