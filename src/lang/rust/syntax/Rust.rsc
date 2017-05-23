@@ -183,11 +183,23 @@ syntax Macro_tokens
 	| Macro_enclosure
 	| String
 	;
+	
+syntax Macro_braces
+	= bracket "{" Macro_tokens* "}"
+	;
+	
+syntax Macro_parens
+	= bracket "(" Macro_tokens* ")"
+	;
+	
+syntax Macro_brackets
+	= bracket "[" Macro_tokens* "]"
+	;
 
 syntax Macro_enclosure
-	= bracket "{" Macro_tokens* "}"
-	| bracket "(" Macro_tokens* ")"
-	| bracket "[" Macro_tokens* "]"
+	= Macro_braces
+	| Macro_parens 
+	| Macro_brackets
 	;
 
 syntax Item_macro
