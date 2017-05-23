@@ -872,7 +872,7 @@ syntax Block_expression
 	| Expression_loop
 	| Expression_for
 	| "unsafe" Block
-	| Path_expression "!" Identifier? Braces_delimited_token_trees
+	| Path_expression "!" Identifier? Macro_braces
 	;
 
 syntax Full_block_expression
