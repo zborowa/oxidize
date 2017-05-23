@@ -535,7 +535,6 @@ syntax Pattern
 	| Path_expression "(" ".." ")"
 	| Path_expression "(" {Pattern ","}+? ")"
 	| Item_macro
-	//| Path_expression "!" Identifier? Delimited_token_trees
 	| Binding_mode Identifier
 	| Binding_mode? Identifier "@" Pattern
 	| "box" Pattern
