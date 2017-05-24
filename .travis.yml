@@ -6,7 +6,8 @@ addons:
 install:
   - wget http://update.rascal-mpl.org/console/rascal-shell-unstable.jar
   - cd src/
-  - /usr/lib/jvm/java-8-oracle/jre/bin/java -Xmx2048m -Xss8m -jar ../rascal-shell-unstable.jar Oxidize.rsc
+  - /usr/lib/jvm/java-8-oracle/jre/bin/java -Xmx2048m -Xss8m -jar ../rascal-shell-unstable.jar
+  - import Oxidize;
 notifications:
   email:
     on_success: never
