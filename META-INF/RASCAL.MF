@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
-Main-Function: main
-Main-Module: main
+Main-Function: Oxidize
+Main-Module: Oxidize
 Source: src/
