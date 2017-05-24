@@ -175,3 +175,10 @@ test bool Troublesome(){
 	
 	return /amb(_) !:= parse_tree;
 }
+
+test bool BootstrapConfig(){
+	str input_file = LoadFile("bootstrap_config");
+	Tree parse_tree = [start[Crate]]input_file;
+	
+	return /amb(_) !:= parse_tree;
+}
