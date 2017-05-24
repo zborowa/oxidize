@@ -1,4 +1,4 @@
-@contributors{Adrian Zborowski - 11336544 - adrian.zborowski@uva.nl}
+@contributors{Adrian Zborowski - ak.zborowski@gmail.com}
 
 module lang::rust::\syntax::Rust
 
