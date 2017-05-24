@@ -4,8 +4,8 @@ addons:
     packages:
       - oracle-java8-set-default
 install:
-  - wget http://update.rascal-mpl.org/console/rascal-shell-stable.jar
-  - /usr/lib/jvm/java-8-oracle/jre/bin/java -Xmx1G -Xss32m -jar rascal-shell-stable.jar Main.rsc
+  - wget http://update.rascal-mpl.org/console/rascal-shell-unstable.jar
+  - /usr/lib/jvm/java-8-oracle/jre/bin/java -Xmx2048m -Xss8m -jar rascal-shell-unstable.jar Oxidize.rsc
 notifications:
   email:
     on_success: never
