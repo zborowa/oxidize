@@ -10,9 +10,9 @@ import DateTime;
 import ParseTree;
 
 // Project
+import util::Walk;
 import util::Parse;
 import util::Timer;
-import util:: Walk;
 
 @doc{
 .Synopsis
