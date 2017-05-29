@@ -722,14 +722,14 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= bracket "{" Inner_attribute* Maybe_statements? "}"
+	= bracket "{" Inner_attribute* Statements? "}"
 	;
 
 syntax Block
-	= bracket "{" Maybe_statements? "}"
+	= bracket "{" Statements? "}"
 	;
 
-syntax Maybe_statements
+syntax Statements
 	= Statement+ Expression!blockExpr!blockStmt?
 	| Expression!blockExpr!blockStmt
 	;
