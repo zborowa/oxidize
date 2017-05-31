@@ -1,2 +1,2 @@
-grammar/* linguist-vendored=false
-src/test/* linguist-vendored=false
+grammar/** linguist-vendored=false
+src/test/** linguist-vendored=false
