@@ -6,20 +6,40 @@ import lang::rust::\syntax::Rust;
 
 public start[Crate] idiomatic(start[Crate] crate) = innermost visit(crate){
 
-	// Delete the unused lifetime and transform into a while statement
-	case (Statement) `<Lifetime lt>: loop {if !(<Expression cond>) {break;} <Statement+ stmts>}` => 
-		 (Statement) `while <Expression cond> {<Statement+ stmts>}`
+	/*
+	Delete unused lifetime from statements which use it.
+	*/
+	case (Statement) `<Lifetime lt>: while <Expression expr> <Block block>` => 
+		 (Statement) `while <Expression expr> <Block block>`
 	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
+	  
+	case (Statement) `<Lifetime lt>: while let <Pattern ptr> = <Expression expr> <Block block>` => 
+		 (Statement) `while let <Pattern ptr> = <Expression expr> <Block block>`
+	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
+	  
+	case (Statement) `<Lifetime lt>: loop <Block block>` => 
+		 (Statement) `loop <Block block>`
+	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
+	  
+	case (Statement) `<Lifetime lt>: for <Pattern ptr> in <Expression expr> <Block block>` => 
+		 (Statement) `for <Pattern ptr> in <Expression expr> <Block block>`
+	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
+
+	/*
+	Transform `loop` statements containing a conditional statement with a `break` statement into a `while` statement. 
+	*/
+	case (Statement) `loop {if !(<Expression cond>) {break;} <Statement+ stmts>}` => 
+		 (Statement) `while <Expression cond> {<Statement+ stmts>}`
 	
-		/* Why is this not ok? */
-	//case (Statement) `<Lifetime lt>: <Statement stmt>` => 
-	//	 (Statement) `<Statement stmt>`
-	//  when !used(crate, (Lifetime) `<Lifetime lt>`)
-	
-		/* cyclic.... */
+	/*
+	Ensure the safety of the pointer already being checked and not being null.
+	*/
 	case (Statement) `if !<Identifier id>.is_null() {<Statement+ stmts>}` => 
 		 (Statement) `if !<Identifier id>.is_null() {let <Identifier id> = NonZero::new(<Identifier id>); <Statement+ stmts>}`
 	  when !in_stmts(stmts, (Statement) `let <Identifier id> = NonZero::new(<Identifier id>);`)
+	  
+	case (Statements) `let <Pattern pat> <Type_ascription? typ> = *<Expression expr>;` => 
+		 (Statements) `let <Pattern pat> <Type_ascription typ> = *<Expression expr>; let <Pattern expr> = NonZero::new(<Expression expr>);`
 
 	/* * * * * * * * * * * * * * * * * * * Additional clean-up transformations * * * * * * * * * * * * * * * * * * */
 

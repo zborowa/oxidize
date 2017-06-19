@@ -48,3 +48,9 @@ fn null_checking(){
         }
     }
 }
+
+fn ptr_der(){
+    if !p.is_null() { /* p is not null in this block */ }
+    let x = *p;
+    let q = &x as (*const _);
+}
