@@ -1,15 +1,15 @@
 
-// fn looping(){
-//     'loop2: loop {
-//         if !(*v1 as (i32) == b'0' as (i32)) {
-//             break;
-//         }
-//         v1 = v1.offset(1isize);
-//     }
-// }
+fn looping(){
+    'loop0: loop {
+        if !(*v1 as (i32) == b'0' as (i32)) {
+            break;
+        }
+        v1 = v1.offset(1isize);
+    }
+}
 
 fn looping2(){
-    'loop56: loop {
+    'loop1: loop {
         if !(i < argc) {
             break;
         }
@@ -18,16 +18,33 @@ fn looping2(){
     }
 }
 
-// fn looping3(){
-//     'loop2: loop{
-//         if(true){
-//             println!("Hello World!");
-//         }
-//     }
-// }
+fn empty_if(){
+    if true{}
+}
 
-// fn whileling(){
-// 	while true{
-// 		println!("Hello World!");
-// 	}
-// }
+fn looping3(){
+    'loop2: loop{
+        if true{
+            println!("Hello World!");
+        }
+    }
+}
+
+fn whileling(){
+	while true{
+		println!("Hello World!");
+	}
+}
+
+fn null_checking(){
+    if !tocvsPath.is_null() {
+        if unlink_file_dir(tocvsPath as (*const u8)) < 0i32 {
+            error(
+                0i32,
+                *__errno_location(),
+                (*b"cannot remove %s\0").as_ptr(),
+                tocvsPath
+            );
+        }
+    }
+}
