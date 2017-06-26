@@ -722,16 +722,15 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= bracket "{" Inner_attribute* Statements? "}"
+	= bracket "{" Inner_attribute* Statements stmts "}"
 	;
 
 syntax Block
-	= bracket "{" Statements? "}"
+	= bracket "{" Statements stmts "}"
 	;
 
 syntax Statements
-	= Statement+ Expression!blockExpr!blockStmt?
-	| Expression!blockExpr!blockStmt
+	= Statement* Expression!blockExpr!blockStmt?
 	;
 
 syntax Statement
@@ -785,7 +784,6 @@ syntax Expression
 			| Expression "/" Expression
 			| Expression "%" Expression)
 			
-	> right   Expression!returnExpr "as" Type
 	> minExpr: "-" Expression
 	| left  ( Expression "+" Expression
 			| Expression!returnExpr "-" Expression)
@@ -825,6 +823,8 @@ syntax Expression
 	| Expression ".."
 	| ".." Expression
 	| ".."
+	
+	> right asType: Expression!returnExpr "as" Type
 	
 	> "box" "(" Expression? ")" Expression
 	> "box" Expression!parenExpr

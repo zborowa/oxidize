@@ -7,64 +7,111 @@ import lang::rust::\syntax::Rust;
 public start[Crate] idiomatic(start[Crate] crate) = innermost visit(crate){
 
 	/*
-	Delete unused lifetime from statements which use it.
+	Delete unused lifetime from statements which declare it.
 	*/
-	case (Statement) `<Lifetime lt>: while <Expression expr> <Block block>` => 
-		 (Statement) `while <Expression expr> <Block block>`
+	//Expression_while
+	case (Expression_while) `<Lifetime lt>: while <Expression cond> {
+						   '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						   '}` => 
+		 (Expression_while) `while <Expression cond> {
+						   '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						   '}`
 	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
 	  
-	case (Statement) `<Lifetime lt>: while let <Pattern ptr> = <Expression expr> <Block block>` => 
-		 (Statement) `while let <Pattern ptr> = <Expression expr> <Block block>`
+	// Expression_while_let
+	case (Expression_while_let) `<Lifetime lt>: while let <Pattern ptr> = <Expression cond> {
+						   		'	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						   		'}` => 
+		 (Expression_while_let) `while let <Pattern ptr> = <Expression cond> {
+						   		'	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						   		'}`
+	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
+	
+	// Expression_loop
+	case (Expression_loop) `<Lifetime lt>: loop {
+						   '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						   '}` => 
+		 (Expression_loop) `loop {
+						   '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						   '}`
 	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
 	  
-	case (Statement) `<Lifetime lt>: loop <Block block>` => 
-		 (Statement) `loop <Block block>`
-	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
-	  
-	case (Statement) `<Lifetime lt>: for <Pattern ptr> in <Expression expr> <Block block>` => 
-		 (Statement) `for <Pattern ptr> in <Expression expr> <Block block>`
+	// Expression_for
+	case (Expression_for) `<Lifetime lt>: for <Pattern ptr> in <Expression cond> {
+						  '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						  '}` => 
+		 (Expression_for) `for <Pattern ptr> in <Expression cond> {
+						  '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+						  '}`
 	  when !used_lifetime(crate, (Lifetime) `<Lifetime lt>`)
 
 	/*
-	Transform `loop` statements containing a conditional statement with a `break` statement into a `while` statement. 
+	Transform `loop` statements containing a conditional `if` statement with a `break` statement into a `while` statement. 
 	*/
-	case (Statement) `loop {if !(<Expression cond>) {break;} <Statement+ stmts>}` => 
-		 (Statement) `while <Expression cond> {<Statement+ stmts>}`
+	case (Block_expression) `loop {
+							'	if !(<Expression cond>) {
+							'		break;
+							'	}
+							'	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+							'}` => 
+		 (Block_expression) `while <Expression cond> {
+		 					'	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+		 					'}`
 	
 	/*
 	Ensure the safety of the pointer already being checked and not being null.
+	TODO: Check if the expression needs to be used in the in_stmts
 	*/
-	case (Statement) `if !<Identifier id>.is_null() {<Statement+ stmts>}` => 
-		 (Statement) `if !<Identifier id>.is_null() {let <Identifier id> = NonZero::new(<Identifier id>); <Statement+ stmts>}`
-	  when !in_stmts(stmts, (Statement) `let <Identifier id> = NonZero::new(<Identifier id>);`)
-	  
-	case (Statements) `let <Pattern pat> <Type_ascription? typ> = *<Expression expr>;` => 
-		 (Statements) `let <Pattern pat> <Type_ascription typ> = *<Expression expr>; let <Pattern expr> = NonZero::new(<Expression expr>);`
+	case (Statement) `if !<Identifier id>.is_null() {
+					 '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+					 '}` => 
+		 (Statement) `if !<Identifier id>.is_null() {
+		 			 '	let <Identifier id> = NonZero::new(<Identifier id>);
+		 			 '	<Statement* stmts> <Expression!blockExpr!blockStmt? expr>
+		 			 '}`
+	  when !in_stmts(stmts)
+	
+	case (Statements) `let <Path_expression id> <Type_ascription? typea> = *<Path_expression pt>;` =>
+		 (Statements) `let <Path_expression id> <Type_ascription? typea> = *<Path_expression pt>;
+		 			  '	let <Path_expression pt> <Type_ascription? typea> = NonZero::new(<Path_expression pt>);`
+		
+	case (Let) `let <Path_expression pe> <Type_ascription? typea> = <Expression e> as <Type t>;` => 
+		 (Let) `let <Path_expression pe> <Type_ascription? typea> = NonZero::new(<Expression e> as <Type t>);`
 
 	/* * * * * * * * * * * * * * * * * * * Additional clean-up transformations * * * * * * * * * * * * * * * * * * */
 
-	case (Statement) `while true {<Statement+ body>}`=>
-		 (Statement) `loop {<Statement+ body>}`
-		 
-	//case (Statement) `if <Expression _> {}`=>   
-	//	 (Statement) `{}`
+	case (Block_expression) `while true <Block block>`=>
+		 (Block_expression) `loop <Block block>`
+	
+	// TODO: This works! Is just a test.
+	//case (Block_item) `<Item_fn item>`:
+	//	 println((Block_item) `<Item_fn item>`);
+	
+	//case fn_item: (Block_item) `fn <Identifier identifier> <Generic_params? generic_params> <Fn_decl fn_decl> <Where_clause? where_clause> { 
+	//                           '  <Statement+ pre_stmts> 
+	//                           '  while true {<Statement+ body>} 
+	//                           '  <Statement+ pos_stmts> 
+	//                           '}` : {
+	//	println((Block_item) `<Item_fn fn_item>`);
+	//	println("Found a block item.");
+	//}
 };
 
-// TODO: Create a new visit for empty curlies
-// TODO: Create a new visit for checking if something is present more than one time in the tree
+//bool in_stmts(Statement* stmts){
+//	int count = 0;
+//	
+//	visit(stmts){
+//		case (Statement) `let <Identifier id1> = NonZero::new(<Identifier id2>);`:{
+//			count+=1;
+//		}
+//	}
+//	
+//	return (count==0)?false:true;
+//}
 
-public bool in_stmts(Statement+ stmts, Statement stmt){
-	int count = 0;
-	
-	visit(stmts){
-		case _stmt: (Statement) `let <Identifier id1> = NonZero::new(<Identifier id2>);`:{
-			println("found");
-			count+=1;
-		}
-	}
-	
-	return (count==0)?false:true;
-}
+// TODO: kijk hier naar
+bool in_stmts(Statement* stms) = /(Statement) `let <Identifier _> = NonZero::new(<Identifier _>);` := stms;
+//int counter(Statement *stms) = (0 | it + 1 | /(Statement) `let <Identifier id1> = NonZero::new(<Identifier id2>);` := stms);
 
 public bool used_lifetime(start[Crate] crate, Lifetime lt){
 	int count = 0;
