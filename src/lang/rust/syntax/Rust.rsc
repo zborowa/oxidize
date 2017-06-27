@@ -730,7 +730,7 @@ syntax Block
 	;
 
 syntax Statements
-	= Statement* Expression!blockExpr!blockStmt?
+	= Statement* stmts Expression!blockExpr!blockStmt? expr
 	;
 
 syntax Statement
