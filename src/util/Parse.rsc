@@ -19,7 +19,7 @@ Parse(<list of locs>);
 Return a list of parse trees parsed with the given grammar and the given starting ruleset. The parse trees have an 
 attached location with them.
 }
-public list[Tree] Parse(list[loc] source_locs, bool verbose=true){
+public list[Tree] Parse(list[loc] source_locs, bool verbose=false){
 	list[loc] parsed = [];
 	list[loc] failed = [];
 	list[loc] ambi = [];
@@ -60,5 +60,6 @@ public list[Tree] Parse(list[loc] source_locs, bool verbose=true){
 		println("Failed: 	<size(failed)>");
 		println("Amb: 		<size(ambi)>");
 	}
+	
 	return source_trees;
 }
