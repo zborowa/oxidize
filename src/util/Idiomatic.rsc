@@ -1,10 +1,14 @@
 module util::Idiomatic
 
 import IO;
+import Map;
 import ParseTree;
 import lang::rust::\syntax::Rust;
 
-public start[Crate] idiomatic(start[Crate] crate) = innermost visit(crate){
+// TODO: Not used (yet). Up for consideration
+map[str, int] statistics;
+
+public Tree idiomatic(Tree crate) = innermost visit(crate){
 
 	/*
 	Delete unused lifetime from statements which declare it.
@@ -125,7 +129,7 @@ bool let_nonzero_in_stmt(Statement* stmts, Identifier id){
 	return false;
 }
 
-bool used_lifetime(start[Crate] crate, Lifetime lt){
+bool used_lifetime(Tree crate, Lifetime lt){
 	int count = 0;
 	
 	visit(crate){
