@@ -775,9 +775,9 @@ syntax Expression
 	> parenExprs: Expression!returnExpr NoCurlyBefore "(" (Expressions ","?)? ")"
 	| parenExpr: "(" (Expressions ","?)? ")"
 	> vecExpr: "[" Vector_expression "]"
-	> contnIdent: "continue" Identifier?
+	> contnIdent: "continue" Lifetime?
 	| returnExpr: "return" Expression?
-	| breakIdent: "break" Identifier?
+	| breakIdent: "break" Lifetime?
 	
 	> starExpr: "*" Expression
 	| left  ( Expression NoCurlyBefore "*" Expression
