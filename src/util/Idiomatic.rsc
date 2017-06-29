@@ -64,8 +64,8 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 	
 	/*
 	Ensure the safety of the pointer already being checked and not being null.
-	TODO: Check if the expression needs to be used in the in_stmts
 	*/
+	// Pointer being safe in the scope of its null check
 	case (Statement) `if !<Identifier id>.is_null() {
 					 '	<Statement* stmts> <Expression? expr>
 					 '}` => 
@@ -75,10 +75,12 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 		 			 '}`
 	  when !let_nonzero_in_stmt(stmts, id)
 	
+	// Pointer being safe if the code is compilable and thus this dereference being safe
 	case (Statements) `let <Path_expression id> <Type_ascription? typea> = *<Path_expression pt>;` =>
 		 (Statements) `let <Path_expression id> <Type_ascription? typea> = *<Path_expression pt>;
 		 			  'let <Path_expression pt> <Type_ascription? typea> = NonZero::new(<Path_expression pt>);`
 		
+	// Pointer being safe by construction
 	case (Let) `let <Path_expression id> <Type_ascription? typea> = <Expression e> as <Type t>;` => 
 		 (Let) `let <Path_expression id> <Type_ascription? typea> = NonZero::new(<Expression e> as <Type t>);`
 
