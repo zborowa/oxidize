@@ -23,6 +23,9 @@ Don't forget to add the following line of code at the top of each crate which is
 If the NonZero is used don't forget to add the following line of code at the top of the main file
 (in case of library in `lib.rs` and in case of an application in `main.rs`)
 	#![feature(nonzero)]
+	
+If the pointer variable which is valid for the nonzero transformation is used somewhere else it 
+should not be transformed into a nonzero pointer. This is for the transformation safety.
 */
 
 @doc{
