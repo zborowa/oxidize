@@ -20,7 +20,7 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 		 (Expression_while) `while <Expression cond> {
 						   '	<Statement* stmts> <Expression? expr>
 						   '}`
-	  when !used_lifetime(crate, lt)
+	  when !used_lifetime(stmts, lt)
 	  
 	// Expression_while_let
 	case (Expression_while_let) `<Lifetime lt>: while let <Pattern ptn> = <Expression cond> {
@@ -29,7 +29,7 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 		 (Expression_while_let) `while let <Pattern ptn> = <Expression cond> {
 						   		'	<Statement* stmts> <Expression? expr>
 						   		'}`
-	  when !used_lifetime(crate, lt)
+	  when !used_lifetime(stmts, lt)
 	
 	// Expression_loop
 	case (Expression_loop) `<Lifetime lt>: loop {
@@ -38,7 +38,7 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 		 (Expression_loop) `loop {
 						   '	<Statement* stmts> <Expression? expr>
 						   '}`
-	  when !used_lifetime(crate, lt)
+	  when !used_lifetime(stmts, lt)
 	  
 	// Expression_for
 	case (Expression_for) `<Lifetime lt>: for <Pattern ptn> in <Expression cond> {
@@ -47,7 +47,7 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 		 (Expression_for) `for <Pattern ptn> in <Expression cond> {
 						  '	<Statement* stmts> <Expression? expr>
 						  '}`
-	  when !used_lifetime(crate, lt)
+	  when !used_lifetime(stmts, lt)
 
 	/*
 	Transform `loop` statements containing a conditional `if` statement with a `break` statement into a `while` statement. 
@@ -129,19 +129,7 @@ bool let_nonzero_in_stmt(Statement* stmts, Identifier id){
 	return false;
 }
 
-bool used_lifetime(Tree crate, Lifetime lt){
-	int count = 0;
-	
-	visit(crate){
-		case _lt: (Lifetime) `<Lifetime _lt>`:{
-			if(_lt := (Lifetime) `<Lifetime lt>`){
-				count+=1;
-			}
-		}
-	}
-	
-	return (count==1)?false:true;
-}
+bool used_lifetime(Statement* stmts, Lifetime lt) = /lt := stmts;
 
 // TODO: kijk hier naar
 //bool let_nonzero_in_stmt(Statement* stms) = /(Statement) `let <Identifier _> = NonZero::new(<Identifier _>);` := stms;
