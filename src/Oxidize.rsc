@@ -63,7 +63,7 @@ public void Oxidize(loc project_loc, str extension=".rs", bool verbose=false){
 	
 	list[loc] source_locs = Walk(project_loc, extension);
 	
-	list[Tree] source_trees = Parse(source_locs);
+	list[Tree] source_trees = Parse(source_locs, verbose=verbose);
 	
 	int count = 0;
 	for(st <- source_trees){
