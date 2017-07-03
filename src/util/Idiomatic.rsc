@@ -5,10 +5,8 @@ import Map;
 import ParseTree;
 import lang::rust::\syntax::Rust;
 
-// TODO: Not used (yet). Up for consideration
-map[str, int] statistics;
-
-public Tree idiomatic(Tree crate) = innermost visit(crate){
+//public Tree idiomatic(Tree crate) = innermost visit(crate){
+public start[Crate] idiomatic(start[Crate] crate) = innermost visit(crate){
 
 	/*
 	Delete unused lifetime from statements which declare it.
@@ -88,15 +86,6 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 
 	case (Block_expression) `while true <Block block>`=>
 		 (Block_expression) `loop <Block block>`
-	
-	//case fn_item: (Block_item) `fn <Identifier identifier> <Generic_params? generic_params> <Fn_decl fn_decl> <Where_clause? where_clause> { 
-	//                           '  <Statement+ pre_stmts> 
-	//                           '  while true {<Statement+ body>} 
-	//                           '  <Statement+ pos_stmts> 
-	//                           '}` : {
-	//	println((Block_item) `<Item_fn fn_item>`);
-	//	println("Found a block item.");
-	//}
 };
 
 //Block_item scoped(Block_item org_bi){
@@ -117,7 +106,6 @@ public Tree idiomatic(Tree crate) = innermost visit(crate){
 //	
 //	return org_bi;
 //}
-//int used_lifetime_temp(Block_item bi, Lifetime lt) = (0 | it + 1 | /lt := bi);
 
 bool let_nonzero_in_stmt(Statement* stmts, Identifier id){
 	visit(stmts){
@@ -136,3 +124,4 @@ bool used_lifetime(Statement* stmts, Lifetime lt) = /lt := stmts;
 // TODO: kijk hier naar
 //bool let_nonzero_in_stmt(Statement* stms) = /(Statement) `let <Identifier _> = NonZero::new(<Identifier _>);` := stms;
 //int counter(Statement *stms) = (0 | it + 1 | /(Statement) `let <Identifier id1> = NonZero::new(<Identifier id2>);` := stms);
+//int used_lifetime_temp(Block_item bi, Lifetime lt) = (0 | it + 1 | /lt := bi);

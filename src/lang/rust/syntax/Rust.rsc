@@ -603,6 +603,7 @@ syntax Type_primitive
 	//| "_"
 	// This is an experimental value ("!") only usable on Nightly
 	| "!"
+	//| Numeric_type
 	| Type_bare_fn
 	| Type_proc
 	| For_in_type
@@ -722,7 +723,7 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= bracket "{" Inner_attribute* Statements stmts "}"
+	= bracket "{" Inner_attribute* ia Statements stmts "}"
 	;
 
 syntax Block
@@ -804,7 +805,7 @@ syntax Expression
 			
 	> andandExpr: "&&" "mut"? Expression
 	| left exprAndAnd: Expression NoCurlyBefore "&&" Expression
-	> left exprOrOr: Expression "||" Expression
+	> left exprOrOr: Expression NoCurlyBefore"||" Expression
 	
 	> right   Expression "\<-" Expression
 	> right ( Expression "=" Expression
