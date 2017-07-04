@@ -6,41 +6,33 @@ import Set;
 import ParseTree;
 import lang::rust::\syntax::Rust;
 
-void raii(start[Crate] crate){
-
-	start[Crate] pre = crate;
-
-	bla = visit(crate){
-		/*
-		Apply RAII if possible, this is based on the use of the `free` keyword in a specific case, this is also a specific 
-		case of Corrode optimalization
-		*/
-		// Use this for the detection of the `free` keyword
-		//case (Statement) `free(<Identifier free_id> as (*mut ::std::os::raw::c_void));`:
-		//	 println("\n\n\n\n<free_id>\n\n\n\n");
-		// Use this for the detection of a full function scope
-		case org:(Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp>
-							  '<Fn_decl params> <Where_clause? wc>
-							  '{ 
-							  '<Inner_attribute* ia>
-							  '<Statements stmts>
-							  '}` =>
-				 (Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp>
-							  '<Fn_decl params> <Where_clause? wc>
-							  '{ 
-							  '<Inner_attribute* ia>
-							  '<Statements fun>
-							  '}`
-			when /(Statements) `free(<Identifier _> as (*mut ::std::os::raw::c_void));` := stmts,
-				 ids := detect_identifiers(stmts),
-				 fun := correct_ptrs(stmts, ids)
-	};
+Tree raii(Tree crate) = visit(crate){
+//start[Crate] raii(start[Crate] crate) = visit(crate){
+	/*
+	Apply RAII if possible, this is based on the use of the `free` keyword in a specific case, this is also a specific 
+	case of Corrode optimalization
+	*/
+	// Use this for the detection of the `free` keyword
+	//case (Statement) `free(<Identifier free_id> as (*mut ::std::os::raw::c_void));`:
+	//	 println("\n\n\n\n<free_id>\n\n\n\n");
 	
-	start[Crate] post = crate;
+	// Use this for the detection of a full function scope
+	case org:(Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp>
+						  '<Fn_decl params> <Where_clause? wc> { 
+						  '<Inner_attribute* ia>
+						  '<Statements stmts>
+						  '}` =>
+			 (Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp>
+						  '<Fn_decl params> <Where_clause? wc>
+						  '{ 
+						  '<Inner_attribute* ia>
+						  '<Statements fun>
+						  '}`
+		when /(Statements) `free(<Identifier _> as (*mut ::std::os::raw::c_void));` := stmts,
+			 ids := detect_identifiers(stmts),
+			 fun := correct_ptrs(stmts, ids)
+};
 	
-	println(bla);
-}
-//
 set[Identifier] detect_identifiers(Statements stmts){
 	set[Identifier] ids = {};
 	visit(stmts){
