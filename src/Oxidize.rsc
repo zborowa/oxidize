@@ -14,6 +14,8 @@ import util::Walk;
 import util::Raii;
 import util::Parse;
 import util::Timer;
+import util::Correct;
+import util::Cleanup;
 import util::Idiomatic;
 
 /* NOTES:
@@ -30,6 +32,8 @@ If the NonZero is used don't forget to add the following line of code at the top
 Don't forget to add the following line of code at the top of each crate which is using NonZero:
 	extern crate core;
 	use self::core::nonzero::NonZero;
+	extern crate mbox;
+	use self::mbox::MArray;
 	
 If the pointer variable which is valid for the nonzero transformation is used somewhere else it 
 should not be transformed into a nonzero pointer. This is for the transformation safety.
@@ -96,8 +100,10 @@ public void Oxidize(loc project_loc, str extension=".rs", bool verbose=false){
 		
 		Tree idiomatic = idiomatic(st);
 		Tree raii = raii(idiomatic);
+		Tree correct = correct(raii);
+		Tree cleanup = cleanup(correct);
 		
-		writeFile(new_file_path, raii);
+		writeFile(new_file_path, cleanup);
 	}
 	if(verbose){
 		print("\n");
