@@ -19,8 +19,7 @@ start[Crate] correct(start[Crate] crate){
 			 		 '
 					 '<Mod_item* mi>`
 			when /(View_item) `extern crate mbox;` !:= mi && /(View_item) `use self::mbox::MArray;` !:= mi,
-				 /(Identifier) `MArray` := mi,
-				 bprintln("MArray added.")
+				 /(Identifier) `MArray` := mi
 	};
 	
 	crate = innermost visit(crate){	 
@@ -33,8 +32,7 @@ start[Crate] correct(start[Crate] crate){
 			 		 '
 					 '<Mod_item* mi>`
 			when /(View_item) `extern crate core;` !:= mi && /(View_item) `use self::core::nonzero::NonZero;` !:= mi,
-				 /(Identifier) `NonZero` := mi,
-				 bprintln("NonZero added.")
+				 /(Identifier) `NonZero` := mi
 	};
 	
 	return crate;
