@@ -6,8 +6,10 @@ import Set;
 import ParseTree;
 import lang::rust::\syntax::Rust;
 
+alias Ids = set[Identifier];
+
 //Tree raii(Tree crate) = visit(crate){
-start[Crate] raii(start[Crate] crate) = visit(crate){
+start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 	/*
 	Apply RAII if possible, this is based on the use of the `free` keyword in a specific case, this is also a specific 
 	case of Corrode optimalization
@@ -18,29 +20,34 @@ start[Crate] raii(start[Crate] crate) = visit(crate){
 						  '}` =>
 			 (Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp> <Fn_decl params> <Where_clause? wc> {
 						  '<Inner_attribute* ia>
-						  '<Statements fun>
+						  '<Statements otc>
 						  '}`
-		when /(Statements) `free(<Identifier f_id> as (*mut ::std::os::raw::c_void));` := stmts,
-			 id_in_scope(stmts, f_id),
-			 ids := detect_identifiers(stmts),
-			 rf := remove_free(stmts, ids),
-			 pd := ptr_decl(rf, ids),
-			 cv := correct_void(pd, ids),
-			 cp := correct_ptrs(cv, ids),
-			 cn := correct_isnull(cp, ids),
-			 cf := correct_fcall(cn, ids),
-			 fun := correct_expr(cf)
+	when fdi := find_declaration_identifiers(stmts),
+		 fii := find_initialization_identifiers(stmts),
+		 aid := fdi + fii,
+		 fvf := find_variable_free(aid,stmts),
+		 df  := delete_free(fvf,stmts),
+		 fdi := fdi & fvf,
+		 fii := fii & fvf,
+		 mt  := modify_type(fvf,df),
+		 mdi := marray_definition_identifiers(fdi,mt),
+		 mii := marray_initialization_identifiers(fii,mt),
+		 mid := mdi + mii,
+		 vtn := void_to_none(mid, mt),
+		 vac := value_assignment_correction(mid, vtn),
+		 vpc := value_passing_correction(mid,vac),
+		 vuc := value_uasage_correction(mid,vpc),
+		 otc := option_type_correction(vuc)
+			 
 };
 
 /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */
 
-bool id_in_scope(Statements stmts, Identifier id) = 
-	/(Let) `let <Binding_mode bm> <Identifier did> <Type_ascription ty>;` := stmts && did := id;
+Ids find_declaration_identifiers(Statements stmts){
+	Ids ids = {};
 	
-set[Identifier] detect_identifiers(Statements stmts){
-	set[Identifier] ids = {};
 	visit(stmts){
-		case (Statement) `free(<Identifier id> as (*mut ::std::os::raw::c_void));`:{
+		case (Let) `let mut <Identifier id> : *mut u8;`:{
 			ids += id;
 		}
 	}
@@ -48,194 +55,249 @@ set[Identifier] detect_identifiers(Statements stmts){
 	return ids;
 }
 
-Statements remove_free(Statements stmts, set[Identifier] ids) = visit(stmts){
-	case org:(Statement) `free(<Identifier id> as (*mut ::std::os::raw::c_void));` => 
-		 	 (Statement) `{}`
-		when id in ids
-};
-
-Statements ptr_decl(Statements stmts, set[Identifier] ids) = visit(stmts){
-	case (Let) `let <Binding_mode bm> <Identifier id> : <Type_sum ts>;` => 
-		 (Let) `let <Binding_mode bm> <Identifier id> : MArray\<u8\>;`
-		when id in ids,
-			 (Type_sum) `*mut u8` := ts
-
-	case (Let) `let <Binding_mode bm> <Identifier id> : <Type_sum ts> = <Expression expr>;` => 
-		 (Let) `let <Binding_mode bm> <Identifier id> : <Type_sum oma> = <Expression mod_expr>;`
-		when id in ids,
-			 (Type_sum) `*mut u8` := ts,
-			 mod_expr := encap_expr(expr),
-			 oma := option_marray(mod_expr)
-};
-
-Expression encap_expr(Expression expr) = bottom-up-break visit(expr){
-	case (Expression) `0i32 as (*mut ::std::os::raw::c_void) as (*mut u8)` =>
-		 (Expression) `None`
-};
-
-Type_sum option_marray(Expression expr){
-	if((Expression) `None` := expr){
-		return (Type_sum) `Option\<MArray\<u8\>\>`;
+Ids find_initialization_identifiers(Statements stmts){
+	Ids ids = {};
+	
+	visit(stmts){
+		case (Let) `let mut <Identifier id> : *mut u8 = <Expression _>;`:{
+			if((Identifier) `p` != id){
+				ids += id;
+			}
+		}
 	}
 	
-	return (Type_sum) `MArray\<u8\>`;
+	return ids;
 }
 
-Statements correct_void(Statements stmts, set[Identifier] ids) = visit(stmts){
+Ids find_variable_free(Ids ids, Statements stmts){
+	Ids fids = {};
+	
+	visit(stmts){
+		case (Statement) `free(<Identifier id> as (*mut ::std::os::raw::c_void));`:{
+			if(id in ids){
+				fids += id;
+			}
+		}
+	}
+	
+	return fids;
+}
+
+Statements delete_free(Ids ids, Statements stmts) = visit(stmts){
+	case (Statement) `free(<Identifier id> as (*mut ::std::os::raw::c_void));` =>
+		 (Statement) `{}`
+	when id in ids
+};
+
+Statements modify_type(Ids ids, Statements stmts) = visit(stmts){
+	case (Statement) `let mut <Identifier id> : *mut u8;` => 
+		 (Statement) `let mut <Identifier id> : MArray\<u8\>;`
+	when id in ids
+	
+	case (Statement) `let mut <Identifier id> : *mut u8 = <Expression expr>;` => 
+		 (Statement) `let mut <Identifier id> : MArray\<u8\> = <Expression expr>;`
+	when id in ids
+};
+
+Ids marray_definition_identifiers(Ids ids, Statements stmts){
+	Ids mids = {};
+
+	visit(stmts){
+		case (Statement) `let mut <Identifier id> : MArray\<u8\>;`:{
+			if(id in ids){
+				mids += id;
+			}			
+		}
+	};
+	
+	return mids;
+}
+
+Ids marray_initialization_identifiers(Ids ids, Statements stmts){
+	Ids mids = {};
+
+	visit(stmts){
+		case (Statement) `let mut <Identifier id> : MArray\<u8\> = <Expression _>;`:{
+			if(id in ids){
+				mids += id;
+			}			
+		}
+	};
+	
+	return mids;
+}
+
+Statements void_to_none(Ids ids, Statements stmts) = visit(stmts){
+	case (Statement) `let mut <Identifier id> : MArray\<u8\> = 0i32 as (*mut ::std::os::raw::c_void) as (*mut u8);` => 
+		 (Statement) `let mut <Identifier id> : MArray\<u8\> = None;`
+	when id in ids
+
 	case (Statement) `<Identifier id> = 0i32 as (*mut ::std::os::raw::c_void) as (*mut u8);` => 
 		 (Statement) `<Identifier id> = None;`
+	when id in ids
+	
+	case (Expression) `<Identifier id> == 0i32 as (*mut ::std::os::raw::c_void) as (*mut u8)` => 
+		 (Expression) `<Identifier id> == None`
+	when id in ids
+	
+	case (Expression) `<Identifier id> != 0i32 as (*mut ::std::os::raw::c_void) as (*mut u8)` => 
+		 (Expression) `<Identifier id> != None`
+	when id in ids
+};
+
+Statements value_assignment_correction(Ids ids, Statements stmts) = visit(stmts){
+	case (Statement) `<Identifier id> = <Expression expr>;` => 
+		 (Statement) `<Identifier id> = MArray::from_raw(<Expression expr>);`
+	when id in ids,
+		 /(Expression) `None` !:= expr
+		 
+	case (Statement) `let mut <Identifier id> : MArray\<u8\> = <Expression expr>;` => 
+		 (Statement) `let mut <Identifier id> : MArray\<u8\> = MArray::from_raw(<Expression expr>);`
+	when id in ids,
+		 /(Expression) `None` !:= expr
+};
+
+Statements value_passing_correction(Ids ids, Statements stmts) = top-down-break visit(stmts){
+	case (Expression) `<Expression l_expr>(<Expressions exprs>)` => 
+		 (Expression) `<Expression l_expr>(<Expressions mod_exprs>)`
+	when mod_exprs := identifier_to_mut_ptr(ids,exprs)
+	
+	case (Statement) `<Identifier l_id> = <Identifier r_id> as (*const u8);` => 
+		 (Statement) `<Identifier l_id> = <Identifier r_id>.as_mut_ptr() as (*const u8);`
+	when r_id in ids
+	
+	case (Statement) `<Identifier l_id> = <Identifier r_id>;` => 
+		 (Statement) `<Identifier l_id> = <Identifier r_id>.as_mut_ptr();`
+	when r_id in ids
+	
+	case (Statement) `let <Identifier l_id> = <Identifier r_id>;` => 
+		 (Statement) `let <Identifier l_id> = <Identifier r_id>.as_mut_ptr();`
+	when r_id in ids
+	
+	case (Statement) `let <Identifier l_id> = *<Identifier r_id>;` => 
+		 (Statement) `let <Identifier l_id> = *<Identifier r_id>.as_mut_ptr();`
+	when r_id in ids
+};
+
+	Expressions identifier_to_mut_ptr(Ids ids, Expressions exprs) = visit(exprs){
+		case (Expression) `<Identifier id>` => 
+			 (Expression) `<Identifier id>.as_mut_ptr()`
 		when id in ids
-};
+	};
 
-Statements correct_ptrs(Statements stmts, set[Identifier] ids) = visit(stmts){
-	case (Expression) `<Expression f_call>(<Expressions exprs>)` => 
-		 (Expression) `<Expression f_call>(<Expressions mod_exprs>)`
-		when mod_exprs := ptr_fn(exprs, ids)
-		
-	case (Statement) `<Identifier aid> = <Identifier id>;` => 
-		 (Statement) `<Identifier aid> = <Identifier id>.as_mut_ptr();`
-		when id in ids 
-};
-
-Expressions ptr_fn(Expressions exprs, set[Identifier] ids) = visit(exprs){
-	case (Expression) `<Identifier id> as (*const u8)` =>
-		 (Expression) `<Identifier id>.as_mut_ptr()`
-		when id in ids
-};
-
-Statements correct_isnull(Statements stmts, set[Identifier] ids) = visit(stmts){
+Statements value_uasage_correction(Ids ids, Statements stmts) = top-down-break visit(stmts){
+	case (Expression) `<Expression l_expr>(<Expressions exprs>)` => 
+		 (Expression) `<Expression mod_expr>(<Expressions exprs>)`
+	when mod_expr := identifier_to_mut_ptr(ids,l_expr)
+	
 	case (Expression) `<Identifier id>.is_null()` => 
 		 (Expression) `<Identifier id>.as_mut_ptr().is_null()`
-		when id in ids
-		
+	when id in ids
+	
 	case (Expression) `!<Identifier id>.is_null()` => 
 		 (Expression) `!<Identifier id>.as_mut_ptr().is_null()`
+	when id in ids
+};
+
+	Expression identifier_to_mut_ptr(Ids ids, Expression expr) = visit(expr){
+		case (Expression) `<Identifier id>` => 
+			 (Expression) `<Identifier id>.as_mut_ptr()`
 		when id in ids
-};
-
-Statements correct_fcall(Statements stmts, set[Identifier] ids) = visit(stmts){
-	case (Statement) `<Identifier id> = <Expression expr>;` => 
-		 (Statement) `<Identifier id> = <Expression mod_expr>;`
-		when id in ids,
-			 mod_expr := not_none_raw(expr)
-		
-	case (Statement) `let <Binding_mode bm> <Identifier id> : MArray\<u8\> = <Expression expr>;` => 
-		 (Statement) `let <Binding_mode bm> <Identifier id> : MArray\<u8\> = <Expression mod_expr>;`
-		when id in ids,
-			 mod_expr := not_none_raw(expr)
-};
-
-Expression not_none_raw(Expression expr){
-	if((Expression) `None` !:= expr){
-		return (Expression) `MArray::from_raw(<Expression expr>)`;
-	}
+	};
 	
-	return expr;
-}
+Statements option_type_correction(Statements stmts){
+	Ids ids = {};
 
-Statements correct_expr(Statements stmts){
 	stmts = visit(stmts){
-		case (Statements) `let mut <Identifier id> : Option\<MArray\<u8\>\> = None;
-						  '<Statement* post_stmts>` => 
-			 (Statements) `let mut <Identifier id> : Option\<MArray\<u8\>\> = None;
-						  '<Statement* ptr_stmts>`
-			when ass_stmts := correct_assignments(post_stmts, id),
-				 ptr_stmts := correct_pcalls(ass_stmts, id)
+		case (Statement) `let mut <Identifier id> : MArray\<u8\> = None;`:{
+			ids += id;
+			insert (Statement) `let mut <Identifier id> : Option\<MArray\<u8\>\> = None;`;
+		}
 	};
 	
 	stmts = visit(stmts){
-		case (Statements) `<Statement* pre_stmts>
-						  'let mut <Identifier id> : MArray\<u8\>;
-						  '<Statement* post_stmts>` => 
-			 (Statements) `<Statement* pre_stmts>
-						  'let mut <Identifier id> : MArray\<u8\>;
-						  '<Statement* cc>`
-			when cc := correct_comparisons(post_stmts, id)
+		case (Statements) `let mut <Identifier id> : MArray\<u8\> = <Expression expr>;
+						  '<Statement* stmts>`:{
+			if(is_assigned_none(id,stmts) || is_compared_none(id,stmts)){
+				ids += id;
+				insert (Statements) `let mut <Identifier id> : Option\<MArray\<u8\>\> = <Expression expr>;
+									'<Statement* stmts>`;
+			}
+		}
+	};
+	
+	stmts = innermost visit(stmts){
+		case (Statements) `let mut <Identifier id> : MArray\<u8\>;
+						  '<Statement* stmts>`:{
+			if(is_assigned_none(id,stmts) || is_compared_none(id,stmts)){
+				ids += id;
+				insert (Statements) `let mut <Identifier id> : Option\<MArray\<u8\>\>;
+						  			'<Statement* stmts>`;
+			}
+		}
 	};
 	
 	stmts = innermost visit(stmts){
 		case (Statements) `<Statement* pre_stmts>
 						  'let mut <Identifier id> : MArray\<u8\>;
-						  '<Statement* post_stmts>` => 
-			 (Statements) `<Statement* pre_stmts>
-			 			  'let mut <Identifier id> : Option\<MArray\<u8\>\>;
-			 			  '<Statement* mod_stmts>`
-			when check_none(post_stmts, id),
-				 cs := correct_assignments(post_stmts, id),
-				 cc := correct_comparisons(cs, id),
-				 mod_stmts := correct_pcalls(cc, id)
+						  '<Statement* stmts>`:{
+			if(is_assigned_none(id,stmts) || is_compared_none(id,stmts)){
+				ids += id;
+				insert (Statements) `<Statement* pre_stmts>
+									'let mut <Identifier id> : Option\<MArray\<u8\>\>;
+						  			'<Statement* stmts>`;
+			}
+		}
 	};
 	
 	stmts = visit(stmts){
-		case (Statements) `<Statement* pre_stmts>
-						  'let mut <Identifier id> : Option\<MArray\<u8\>\>;
-						  '<Statement* post_stmts>` =>
-			 (Statements) `<Statement* pre_stmts>
-						  'let mut <Identifier id> : Option\<MArray\<u8\>\>;
-						  '<Statement* mod_stmts>`
-			when mod_stmts := correct_var_uses(post_stmts, id)
-	};
-
-	return stmts;
-}
-
-Statement* correct_var_uses(Statement* stmts, Identifier id){
-	stmts = visit(stmts){
-		case (Expression) `<Expression l_expr> as <Type t>` => 
-			 (Expression) `<Expression mod_expr> as <Type t>`
-			when mod_expr := adjust_to_type(l_expr, id, t)
+		case (Statement) `let mut <Identifier id> : MArray\<u8\>;`:{
+			if(is_assigned_none(id,stmts) || is_compared_none(id,stmts)){
+				ids += id;
+				insert (Statement) `let mut <Identifier id> : Option\<MArray\<u8\>\>;`;
+			}
+		}
 	};
 	
-	return stmts;
-}
-
-Expression adjust_to_type(Expression expr, Identifier id, Type t) = visit(expr){
-	case (Expression) `<Identifier f_id>` => 
-		 (Expression) `<Identifier f_id>.unwrap().as_mut_ptr()`
-		when f_id := id,
-			 (Type) `(*const u8)` := t
-};
-
-bool check_none(Statement* stmts, Identifier id) = 
-	/(Statement) `<Identifier f_id> = None;` := stmts 
-	|| /(Expression) `<Identifier f_id> == None` := stmts
-	|| /(Expression) `<Identifier f_id> != None` := stmts
-	&& f_id := id;
-
-Statement* correct_assignments(Statement* stmts, Identifier id) = visit(stmts){
-	case (Statement) `<Identifier f_id> = <Expression expr>;` => 
-		 (Statement) `<Identifier f_id> = Some(<Expression expr>);`
-		when f_id := id,
-			 (Expression) `None` !:= expr,
-			 (Expression) `Some(<Expression _>)` !:= expr
+	stmts = visit(stmts){
+		case (Statement) `<Identifier l_id> = <Expression expr>;` => 
+			 (Statement) `<Identifier l_id> = Some(<Expression expr>);`
+		when l_id in ids,
+			 /(Expression) `None` !:= expr,
+			 /(Expression) `Some(<Expression _>)` !:= expr
 			 
-	case (Statement) `<Identifier l_id> = <Identifier r_id> as (*const u8);` => 
-		 (Statement) `<Identifier l_id> = <Identifier r_id>.unwrap().as_mut_ptr();`
-		when r_id := id
-};
+		case (Statement) `let mut <Identifier l_id> : <Type_sum ts> = <Expression expr>;` => 
+			 (Statement) `let mut <Identifier l_id> : <Type_sum ts> = Some(<Expression expr>);`
+		when l_id in ids,
+			 /(Expression) `None` !:= expr,
+			 /(Expression) `Some(<Expression _>)` !:= expr
+	};
+	
+	stmts = visit(stmts){
+		case (Expression) `<Identifier id>.as_mut_ptr()` => 
+			 (Expression) `<Identifier id>.unwrap().as_mut_ptr()`
+		when id in ids
+	};
 
-Statement* correct_comparisons(Statement* stmts, Identifier id) = visit(stmts){
-	case (Expression) `<Identifier f_id> == 0i32 as (*mut ::std::os::raw::c_void) as (*mut u8)` => 
-		 (Expression) `<Identifier f_id> == None`
-		when f_id := id
+	return stmts;
+}
+
+	bool is_assigned_none(Identifier id, Statement* stmts) 
+		=  /(Statement) `<Identifier l_id> = None;` := stmts
+		&& l_id == id;
 		
-	case (Expression) `<Identifier f_id> != 0i32 as (*mut ::std::os::raw::c_void) as (*mut u8)` => 
-		 (Expression) `<Identifier f_id> != None`
-		when f_id := id
-};
-
-Statement* correct_pcalls(Statement* stmts, Identifier id) = visit(stmts){
-	case (Expression) `<Identifier f_id>.as_mut_ptr()` => 
-		 (Expression) `<Identifier f_id>.unwrap().as_mut_ptr()`
-		when f_id := id
+	bool is_compared_none(Identifier id, Statement* stmts)
+		=  /(Expression) `<Identifier l_id1> == None` := stmts
+		&& l_id1 == id
+		|| /(Expression) `<Identifier l_id2> != None` := stmts
+		&& l_id2 == id;
 		
-	case (Expression) `!<Identifier f_id>.as_mut_ptr()` => 
-		 (Expression) `!<Identifier f_id>.unwrap().as_mut_ptr()`
-		when f_id := id
-};
-
-//Expression not_none_raw(Expression expr) = bottom-up-break visit(expr){
-//	case (Expression) `<Expression expr2>` => 
-//		 (Expression) `MArray::from_raw(<Expression expr2>)`
-//		when (Expression) `None` !:= expr2
-//};
+	bool is_assigned_none(Identifier id, Statements stmts) 
+		=  /(Statement) `<Identifier l_id> = None;` := stmts
+		&& l_id == id;
+		
+	bool is_compared_none(Identifier id, Statements stmts)
+		=  /(Expression) `<Identifier l_id1> == None` := stmts
+		&& l_id1 == id
+		|| /(Expression) `<Identifier l_id2> != None` := stmts
+		&& l_id2 == id;
