@@ -22,8 +22,9 @@ start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 						  '<Inner_attribute* ia>
 						  '<Statements otc>
 						  '}`
-	when fdi := find_declaration_identifiers(stmts),
-		 fii := find_initialization_identifiers(stmts),
+	when fi := find_Identifiers(stmts),
+		 fdi := fi.def,
+		 fii := fi.ini,
 		 aid := fdi + fii,
 		 fvf := find_variable_free(aid,stmts),
 		 df  := delete_free(fvf,stmts),
@@ -43,30 +44,39 @@ start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 
 /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */
 
-Ids find_declaration_identifiers(Statements stmts){
-	Ids ids = {};
+tuple[Ids def,Ids ini] find_Identifiers(Statements stmts){
+	Ids def = {};
+	Ids ini = {};
 	
 	visit(stmts){
-		case (Let) `let mut <Identifier id> : *mut u8;`:{
-			ids += id;
+		case (Let) `let mut <Identifier id> : <Type_sum ts>;`:{
+			if(/(Type_sum) `*mut u8` := ts){
+				def += id;
+			}else{
+				if(id in def){
+					def = def - {id};
+				}
+				if(id in ini){
+					ini = ini - {id};
+				}
+			}
 		}
-	}
-	
-	return ids;
-}
-
-Ids find_initialization_identifiers(Statements stmts){
-	Ids ids = {};
-	
-	visit(stmts){
-		case (Let) `let mut <Identifier id> : *mut u8 = <Expression _>;`:{
-			if((Identifier) `p` != id){
-				ids += id;
+		
+		case (Let) `let mut <Identifier id> : <Type_sum ts> = <Expression _>;`:{
+			if(/(Type_sum) `*mut u8` := ts){
+				ini += id;
+			}else{
+				if(id in def){
+					def = def - {id};
+				}
+				if(id in ini){
+					ini = ini - {id};
+				}
 			}
 		}
 	}
 	
-	return ids;
+	return <def, ini>;
 }
 
 Ids find_variable_free(Ids ids, Statements stmts){
