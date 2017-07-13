@@ -285,7 +285,7 @@ Statements option_type_correction(Statements stmts){
 	
 	stmts = visit(stmts){
 		case (Expression) `<Identifier id>.as_mut_ptr()` => 
-			 (Expression) `<Identifier id>.unwrap().as_mut_ptr()`
+			 (Expression) `<Identifier id>.as_mut().unwrap().as_mut_ptr()`
 		when id in ids
 	};
 
