@@ -14,14 +14,14 @@ start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 	Apply RAII if possible, this is based on the use of the `free` keyword in a specific case, this is also a specific 
 	case of Corrode optimalization
 	*/
-	case org:(Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp> <Fn_decl params> <Where_clause? wc> { 
-						  '<Inner_attribute* ia>
-						  '<Statements stmts>
-						  '}` =>
-			 (Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp> <Fn_decl params> <Where_clause? wc> {
-						  '<Inner_attribute* ia>
-						  '<Statements otc>
-						  '}`
+	case (Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp> <Fn_decl params> <Where_clause? wc> { 
+					  '<Inner_attribute* ia>
+					  '<Statements stmts>
+					  '}` =>
+		 (Block_item) `unsafe extern <String? st> fn <Identifier fn_id> <Generic_params? gp> <Fn_decl params> <Where_clause? wc> {
+					  '<Inner_attribute* ia>
+					  '<Statements otc>
+					  '}`
 	when fi := find_Identifiers(stmts),
 		 fdi := fi.def,
 		 fii := fi.ini,
@@ -37,7 +37,7 @@ start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 		 vtn := void_to_none(mid, mt),
 		 vac := value_assignment_correction(mid, vtn),
 		 vpc := value_passing_correction(mid,vac),
-		 vuc := value_uasage_correction(mid,vpc),
+		 vuc := value_usage_correction(mid,vpc),
 		 otc := option_type_correction(vuc)
 			 
 };
@@ -137,6 +137,9 @@ Ids marray_initialization_identifiers(Ids ids, Statements stmts){
 	return mids;
 }
 
+Ids jv_marray_initialization_identifiers(Ids ids, Statements stmts)
+	= { id | /(Statement) `let mut <Identifier id> : MArray\<u8\> = <Expression _>;` := stmts, id in ids};
+
 Statements void_to_none(Ids ids, Statements stmts) = visit(stmts){
 	case (Statement) `let mut <Identifier id> : MArray\<u8\> = 0i32 as (*mut ::std::os::raw::c_void) as (*mut u8);` => 
 		 (Statement) `let mut <Identifier id> : MArray\<u8\> = None;`
@@ -195,7 +198,7 @@ Statements value_passing_correction(Ids ids, Statements stmts) = top-down-break 
 		when id in ids
 	};
 
-Statements value_uasage_correction(Ids ids, Statements stmts) = top-down-break visit(stmts){
+Statements value_usage_correction(Ids ids, Statements stmts) = top-down-break visit(stmts){
 	case (Expression) `<Expression l_expr>(<Expressions exprs>)` => 
 		 (Expression) `<Expression mod_expr>(<Expressions exprs>)`
 	when mod_expr := identifier_to_mut_ptr(ids,l_expr)
@@ -227,22 +230,22 @@ Statements option_type_correction(Statements stmts){
 	
 	stmts = visit(stmts){
 		case (Statements) `let mut <Identifier id> : MArray\<u8\> = <Expression expr>;
-						  '<Statement* stmts>`:{
+						  '<Statement* post_stmts>`:{
 			if(is_assigned_none(id,stmts) || is_compared_none(id,stmts)){
 				ids += id;
 				insert (Statements) `let mut <Identifier id> : Option\<MArray\<u8\>\> = <Expression expr>;
-									'<Statement* stmts>`;
+									'<Statement* post_stmts>`;
 			}
 		}
 	};
 	
 	stmts = innermost visit(stmts){
 		case (Statements) `let mut <Identifier id> : MArray\<u8\>;
-						  '<Statement* stmts>`:{
+						  '<Statement* post_stmts>`:{
 			if(is_assigned_none(id,stmts) || is_compared_none(id,stmts)){
 				ids += id;
 				insert (Statements) `let mut <Identifier id> : Option\<MArray\<u8\>\>;
-						  			'<Statement* stmts>`;
+						  			'<Statement* post_stmts>`;
 			}
 		}
 	};
@@ -250,12 +253,12 @@ Statements option_type_correction(Statements stmts){
 	stmts = innermost visit(stmts){
 		case (Statements) `<Statement* pre_stmts>
 						  'let mut <Identifier id> : MArray\<u8\>;
-						  '<Statement* stmts>`:{
+						  '<Statement* post_stmts>`:{
 			if(is_assigned_none(id,stmts) || is_compared_none(id,stmts)){
 				ids += id;
 				insert (Statements) `<Statement* pre_stmts>
 									'let mut <Identifier id> : Option\<MArray\<u8\>\>;
-						  			'<Statement* stmts>`;
+						  			'<Statement* post_stmts>`;
 			}
 		}
 	};
