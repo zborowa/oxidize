@@ -16,6 +16,7 @@ import util::Parse;
 import util::Timer;
 import util::Correct;
 import util::Cleanup;
+import util::NonZero;
 import util::Idiomatic;
 
 /* NOTES:
@@ -100,6 +101,7 @@ public void Oxidize(loc project_loc, str extension=".rs", bool verbose=false){
 		
 		Tree idiomatic = idiomatic(st);
 		Tree raii = raii(idiomatic);
+		//Tree nonzero = nonzero(raii);
 		Tree correct = correct(raii);
 		Tree cleanup = cleanup(correct);
 		
