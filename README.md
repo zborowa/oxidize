@@ -47,7 +47,7 @@ Follow the installation steps for the Eclipse plugin on the Rascal MPL website: 
 3. Now that we have a new console in the `Terminal` tab we can import the `Demo` module
    * This can be done by typing in the console the following: *`import Demo;`* (this module extends all the required modules to run the project)
 4. This gives use the ability of running the project like follow: *`Oxidize(|<location>|, [options]);`*
-   * Replace the `<location>` with the corresponding location of your to idiomatize project. Don't forget to have the vertical bars (`|`) around your location. That is a location type within Rascal MPL just like a text enclosed by double quotes (`"`) is a string.
+   * Replace the `<location>` with the corresponding location of your to idiomatize project. Don't forget to have the vertical bars (`|`) around your location. That is a location type within Rascal MPL, just like how a text enclosed by double quotes (`"`) is a string.
    * We can also pass options to the function by adding them just like normal parameters of a function (at this time only one option exists):
      * `verbose=true`: returns additional information in the terminal for the user to better understand what is happening
 5. Hitting *`Enter`* on your keyboard will run the function and should not take long to complete
