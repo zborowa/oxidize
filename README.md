@@ -14,8 +14,8 @@ Oxidize project can be run through a terminal or an Eclipse IDE. This is due to 
 For the **Eclipse** usage of this project it is important to have the following program versions installed on your computer:
 * [Eclipse for RCP Developers](http://www.eclipse.org/downloads/packages/release/Neon/3) >= Neon.2
   * [Rascal MPL](http://www.rascal-mpl.org/) == 0.8.4.201706151132
-  * JDK >= 1.8
-  * JRE >= 1.8
+    * JDK >= 1.8
+    * JRE >= 1.8
 
 (Other versions have not been fully tested by this project)
 
