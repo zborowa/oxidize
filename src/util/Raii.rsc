@@ -22,7 +22,7 @@ start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 					  '<Inner_attribute* ia>
 					  '<Statements otc>
 					  '}`
-	when fi := find_Identifiers(stmts),
+	when fi  := find_Identifiers(stmts),
 		 fdi := fi.def,
 		 fii := fi.ini,
 		 aid := fdi + fii,
@@ -38,8 +38,7 @@ start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 		 vac := value_assignment_correction(mid, vtn),
 		 vpc := value_passing_correction(mid,vac),
 		 vuc := value_usage_correction(mid,vpc),
-		 otc := option_type_correction(vuc)
-			 
+		 otc := option_type_correction(vuc) 
 };
 
 /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */

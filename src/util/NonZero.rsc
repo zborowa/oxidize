@@ -20,7 +20,6 @@ start[Crate] nonzero(start[Crate] crate) = bottom-up visit(crate){
 	when nci := null_check_id(stmts),
 		 iis := id_in_scope(nci,stmts),
 		 inc := is_null_checked(iis,stmts)
-		 
 };
 
 Ids null_check_id(Statements stmts){
@@ -40,13 +39,13 @@ Ids id_in_scope(Ids ids, Statements stmts){
 	visit(stmts){
 		case (Let) `let mut <Identifier id>: <Type_sum _>;`:{
 			if(id in ids){
-				ids += id;
+				sids += id;
 			}
 		}
 			
 		case (Let) `let mut <Identifier id>: <Type_sum _> = <Expression _>;`:{
 			if(id in ids){
-				ids += id;
+				sids += id;
 			}
 		}
 	};
