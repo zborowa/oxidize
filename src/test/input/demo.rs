@@ -18,22 +18,28 @@ fn looping2(){
     }
 }
 
-fn empty_if(){
-    if true{}
-}
-
-fn looping3(){
-    'loop2: loop{
-        if true{
-            println!("Hello World!");
-        }
-    }
-}
-
-fn whileling(){
-	while true{
+fn whileing1(){
+	'while0: while true {
 		println!("Hello World!");
 	}
+}
+
+fn whileing2(){
+	let w = 0;
+	'while1: while w <= 9 {
+		println!(w);
+		w = w + 1;
+	}
+}
+
+fn whileling3(){
+    println!("Hello, ");
+
+	while true{
+		println!("magnificent ");
+	}
+
+    println!("world!");
 }
 
 fn null_checking(){
@@ -47,4 +53,16 @@ fn null_checking(){
             );
         }
     }
+}
+
+fn ptr_der1(){
+    if !p.is_null() { /* p is not null in this block */ }
+}
+
+fn ptr_der2(){
+	let x = *p;
+}
+
+fn ptr_der3(){
+    let q = &x as (*const _); // q is not null, by construction
 }

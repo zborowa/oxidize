@@ -11,8 +11,34 @@ import ParseTree;
 
 // Project
 import util::Walk;
+import util::Ownership;
 import util::Parse;
 import util::Timer;
+import util::Correct;
+import util::Cleanup;
+import util::NonZero;
+import util::Idiomatic;
+
+/* NOTES:
+Example of how to run in the terminal:
+	java -Xmx1G -Xss32m -jar rascal.jar Oxidize.rsc -v /Users/AdrianZ/Projects/cwi/cvs-rs
+	
+Example of how to run in Eclipse:
+	Oxidize(|file:///Users/AdrianZ/Projects/cwi/cvs-rs|, verbose=true);
+
+If the NonZero is used don't forget to add the following line of code at the top of the main file
+(in case of library in `lib.rs` and in case of an application in `main.rs`)
+	#![feature(nonzero)]
+
+Don't forget to add the following line of code at the top of each crate which is using NonZero:
+	extern crate core;
+	use self::core::nonzero::NonZero;
+	extern crate mbox;
+	use self::mbox::MArray;
+	
+If the pointer variable which is valid for the nonzero transformation is used somewhere else it 
+should not be transformed into a nonzero pointer. This is for the transformation safety.
+*/
 
 @doc{
 .Synopsis
@@ -26,35 +52,65 @@ This is a function needed for the interpreter as the access point to the project
 function which runs the project.
 }
 public void main(list[str] args){
-	loc project_path = |file:///|;
-	str extension = ".rs";
-	bool duration = false;
+	str usage = "usage:\tjava -Xmx1G -Xss32m -jar rascal.jar Oxidize.rsc [-v] /\<path-from-root\>/\<target\>";
+	str insufficient_parameters = "There seems to be an insufficient amount of passed through variables. Please consult the usage guide.";
+	loc project_path;
+	bool verbose = false;
 	
-	if(size(args) > 0){
-		project_path = toLocation(args[0]);
+	if("-v" in args){
+		verbose = true;
 	}
 	
-	if(size(args) > 1){
-		project_path = toLocation(args[1]);
-	}
+	try{
+		loc target = |file:///| + args[-1];
+		if(exists(target) && isDirectory(target)){
+			project_path = target;
+		}
+	} catch IndexOutOfBounds(int i):
+		println(insufficient_parameters);
+	  catch EmptyList():
+		println(insufficient_parameters);
 	
-	if(size(args) > 2){
-		project_path = toLocation(args[2]);
-	}
-	
-	if(!isEmpty(project_path.authority)){
-		Oxidize(project_path, extension=extension, duration=duration);
+	if(project_path? && project_path.path?){
+		Oxidize(project_path, verbose=verbose);
 	}else{
-		println("There was no location string provided. Examples usage:\n\tjava -Xmx1G -Xss32m -jar rascal.jar Oxidize.rsc \"|file://\<path\>/rs-project|\"");
+		println(usage);
 	}
 }
 
-public void Oxidize(loc project_path, str extension=".rs", bool duration=true){
+public void Oxidize(loc project_loc, str extension=".rs", bool verbose=false){
 	datetime timer_start = now();
 	
-	list[loc] source_locs = Walk(project_path, extension);
-	list[Tree] source_trees = Parse(source_locs);
+	list[loc] source_locs = Walk(project_loc, extension);
 	
-	Duration timer_duration = now() - timer_start;
+	list[Tree] source_trees = Parse(source_locs, verbose=verbose);
+	
+	int count = 0;
+	for(st <- source_trees){
+	
+		if(verbose){
+			count += 1;
+			print("\rProcessing file <count> out of <size(source_trees)>...");
+		}
+	
+		str project_path = project_loc.path;
+		str file_path = st@\loc.path;
+		
+		str new_project_path = (project_loc.parent + (project_loc.file + "_idiom")).path;
+		loc new_file_path = |file:///| + replaceFirst(file_path, project_path, new_project_path);
+		
+		Tree idiomatic = idiomatic(st);
+		Tree ownership = ownership(idiomatic);
+		//Tree nonzero = nonzero(ownership);
+		Tree correct = correct(ownership);
+		Tree cleanup = cleanup(correct);
+		
+		writeFile(new_file_path, cleanup);
+	}
+	if(verbose){
+		print("\n");
+	}
+	
+	Duration timer_duration = createDuration(timer_start, now());
 	println(Timer(timer_duration));
 }

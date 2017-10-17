@@ -603,6 +603,7 @@ syntax Type_primitive
 	//| "_"
 	// This is an experimental value ("!") only usable on Nightly
 	| "!"
+	//| Numeric_type
 	| Type_bare_fn
 	| Type_proc
 	| For_in_type
@@ -722,16 +723,15 @@ syntax Trait_ref
 /* #### #### Blocks, Statements, and expressions #### #### */
 
 syntax Inner_attributes_and_block
-	= bracket "{" Inner_attribute* Statements? "}"
+	= bracket "{" Inner_attribute* ia Statements stmts "}"
 	;
 
 syntax Block
-	= bracket "{" Statements? "}"
+	= bracket "{" Statements stmts "}"
 	;
 
 syntax Statements
-	= Statement+ Expression!blockExpr!blockStmt?
-	| Expression!blockExpr!blockStmt
+	= Statement* stmts Expression!blockExpr!blockStmt? expr
 	;
 
 syntax Statement
@@ -776,16 +776,15 @@ syntax Expression
 	> parenExprs: Expression!returnExpr NoCurlyBefore "(" (Expressions ","?)? ")"
 	| parenExpr: "(" (Expressions ","?)? ")"
 	> vecExpr: "[" Vector_expression "]"
-	> contnIdent: "continue" Identifier?
+	> contnIdent: "continue" Lifetime?
 	| returnExpr: "return" Expression?
-	| breakIdent: "break" Identifier?
+	| breakIdent: "break" Lifetime?
 	
 	> starExpr: "*" Expression
 	| left  ( Expression NoCurlyBefore "*" Expression
 			| Expression "/" Expression
 			| Expression "%" Expression)
 			
-	> right   Expression!returnExpr "as" Type
 	> minExpr: "-" Expression
 	| left  ( Expression "+" Expression
 			| Expression!returnExpr "-" Expression)
@@ -806,7 +805,7 @@ syntax Expression
 			
 	> andandExpr: "&&" "mut"? Expression
 	| left exprAndAnd: Expression NoCurlyBefore "&&" Expression
-	> left exprOrOr: Expression "||" Expression
+	> left exprOrOr: Expression NoCurlyBefore"||" Expression
 	
 	> right   Expression "\<-" Expression
 	> right ( Expression "=" Expression
@@ -825,6 +824,8 @@ syntax Expression
 	| Expression ".."
 	| ".." Expression
 	| ".."
+	
+	> right asType: Expression!returnExpr "as" Type
 	
 	> "box" "(" Expression? ")" Expression
 	> "box" Expression!parenExpr
