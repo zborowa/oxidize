@@ -11,7 +11,7 @@ import ParseTree;
 
 // Project
 import util::Walk;
-import util::Raii;
+import util::Ownership;
 import util::Parse;
 import util::Timer;
 import util::Correct;
@@ -100,9 +100,9 @@ public void Oxidize(loc project_loc, str extension=".rs", bool verbose=false){
 		loc new_file_path = |file:///| + replaceFirst(file_path, project_path, new_project_path);
 		
 		Tree idiomatic = idiomatic(st);
-		Tree raii = raii(idiomatic);
-		//Tree nonzero = nonzero(raii);
-		Tree correct = correct(raii);
+		Tree ownership = ownership(idiomatic);
+		//Tree nonzero = nonzero(ownership);
+		Tree correct = correct(ownership);
 		Tree cleanup = cleanup(correct);
 		
 		writeFile(new_file_path, cleanup);

@@ -1,4 +1,4 @@
-module util::Raii
+module util::Ownership
 
 import IO;
 import Map;
@@ -8,8 +8,8 @@ import lang::rust::\syntax::Rust;
 
 alias Ids = set[Identifier];
 
-//Tree raii(Tree crate) = visit(crate){
-start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
+//Tree ownership(Tree crate) = visit(crate){
+start[Crate] ownership(start[Crate] crate) = bottom-up visit(crate){
 	/*
 	Apply RAII if possible, this is based on the use of the `free` keyword in a specific case, this is also a specific 
 	case of Corrode optimalization
@@ -27,18 +27,18 @@ start[Crate] raii(start[Crate] crate) = bottom-up visit(crate){
 		 fii := fi.ini,
 		 aid := fdi + fii,
 		 fvf := find_variable_free(aid,stmts),
-		 df  := delete_free(fvf,stmts),
 		 fdi := fdi & fvf,
 		 fii := fii & fvf,
-		 mt  := modify_type(fvf,df),
+		 mt  := modify_type(fvf,stmts),
 		 mdi := marray_definition_identifiers(fdi,mt),
 		 mii := marray_initialization_identifiers(fii,mt),
 		 mid := mdi + mii,
-		 vtn := void_to_none(mid, mt),
-		 vac := value_assignment_correction(mid, vtn),
+		 df  := delete_free(mid,mt),
+		 vtn := void_to_none(mid,df),
+		 vac := value_assignment_correction(mid,vtn),
 		 vpc := value_passing_correction(mid,vac),
 		 vuc := value_usage_correction(mid,vpc),
-		 otc := option_type_correction(vuc) 
+		 otc := option_type_correction(vuc)
 };
 
 /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */
